@@ -36,7 +36,7 @@ fun CatalogoScreen(
         Comic(2, "Batman: Año Uno", 14990, R.drawable.batman),
         Comic(3, "Avengers: Endgame", 24990, R.drawable.avenger),
         Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men),
-        Comic(5, "Iron Man: Extremis", 19990, R.drawable.ironman),
+        Comic(5, "Iron Man #1", 19990, R.drawable.ironman),
     )
 
     Column(
