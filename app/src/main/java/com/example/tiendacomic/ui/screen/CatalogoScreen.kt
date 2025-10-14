@@ -37,7 +37,9 @@ fun CatalogoScreen(
         Comic(3, "Avengers: Endgame", 24990, R.drawable.avenger),
         Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men),
         Comic(5, "Iron Man #1", 19990, R.drawable.ironman),
-    )
+        Comic(6, "4 Fantasticos #1", 24990, R.drawable.fantasticos),
+
+        )
 
     Column(
         modifier = Modifier
