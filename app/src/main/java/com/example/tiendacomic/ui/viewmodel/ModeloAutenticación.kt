@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
-
+//login UI
 data class LoginUiState(
     val correo: String = "",
     val contrasena: String = "",
@@ -23,7 +23,7 @@ data class LoginUiState(
     val exito: Boolean = false,
     val mensajeError: String? = null
 )
-
+//Registro UI
 data class RegistroUiState(
     val nombre: String = "",
     val rut: String = "",
@@ -40,6 +40,16 @@ data class RegistroUiState(
     val exito: Boolean = false,
     val mensajeError: String? = null
 )
+
+//Perfil UI
+
+data class PerfilUiState(
+    val nombre: String = "",
+    val rut: String = "",
+    val correo: String = "",
+    val contrasena: String = "",
+)
+
 
 // Modelo de usuarios
 
@@ -177,6 +187,21 @@ class ModeloAutenticacion : ViewModel() {
     fun limpiarResultadoRegistro() {
         _registro.update { it.copy(exito = false, mensajeError = null) }
     }
+
+    //Perfil de usuario
+    private val _perfilUiState = MutableStateFlow(PerfilUiState())
+    val perfilUiState: StateFlow<PerfilUiState> = _perfilUiState
+
+    init {
+        // Simulamos cargar los datos del usuario
+        _perfilUiState.value = PerfilUiState(
+            nombre = "Bruce Espinoza",
+            rut = "20.123.456-7",
+            correo = "bruce@gmail.com",
+            contrasena = "Aa!12345"
+        )
+    }
+
 }
 
 
