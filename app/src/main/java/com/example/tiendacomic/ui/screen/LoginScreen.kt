@@ -1,124 +1,158 @@
 package com.example.tiendacomic.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
+// ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
 @Composable
-fun LoginScreen(
+fun LoginScreenVm(
     onLoginExitoso: () -> Unit,
-    onIrRegistro: () -> Unit,
-    modifier: Modifier = Modifier
-){
+    onIrRegistro: () -> Unit
+) {
+    val vm: ModeloAutenticacion = viewModel()
+    val state by vm.login.collectAsStateWithLifecycle()
 
-    val bg = MaterialTheme.colorScheme.background
-
-    var correo by remember { mutableStateOf("") }
-    var contraseña by remember { mutableStateOf("") }
-    var contraseñaVisible by remember { mutableStateOf(false) }
-
-    fun gmailValido(gmail: String): Boolean {
-        val gmailValido = Regex("^[A-Za-z0-9._%+-]+@gmail\\.com$")
-        return gmailValido.matches(gmail)
+    if (state.exito) {
+        vm.limpiarResultadoLogin()
+        onLoginExitoso()
     }
+
+    LoginScreen(
+        correo = state.correo,
+        contrasena = state.contrasena,
+        errorCorreo = state.errorCorreo,
+        errorContrasena = state.errorContrasena,
+        puedeEnviar = state.puedeEnviar,
+        enviando = state.enviando,
+        mensajeError = state.mensajeError,
+        onCorreoChange = vm::alCambiarCorreoLogin,
+        onContrasenaChange = vm::alCambiarContrasenaLogin,
+        onSubmit = vm::enviarLogin,
+        onIrRegistro = onIrRegistro
+    )
+}
+
+// ---------- UI PRESENTACIONAL ----------
+@Composable
+private fun LoginScreen(
+    correo: String,
+    contrasena: String,
+    errorCorreo: String?,
+    errorContrasena: String?,
+    puedeEnviar: Boolean,
+    enviando: Boolean,
+    mensajeError: String?,
+    onCorreoChange: (String) -> Unit,
+    onContrasenaChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onIrRegistro: () -> Unit
+) {
+    var mostrarPass by remember { mutableStateOf(false) }
+    //val bg = MaterialTheme.colorScheme.secondaryContainer
+    val fondo = MaterialTheme.colorScheme.background //fondo
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bg)
+            //.background(bg)
+            .background(fondo)
             .padding(16.dp),
-        contentAlignment = Alignment.TopCenter
-    ){
-        Column(horizontalAlignment = Alignment.CenterHorizontally){
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Login", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(12.dp))
             Text(
-                text = "Inicio de seccion",
-                style = MaterialTheme.typography.headlineSmall,
-
+                text = "Ingresa con tu correo y contraseña.",
+                textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
+            // ---------- CORREO ----------
             OutlinedTextField(
                 value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo Usuario") },
-                modifier = Modifier.fillMaxWidth(),
+                onValueChange = onCorreoChange,
+                label = { Text("Correo electrónico") },
                 singleLine = true,
-                placeholder = { Text("ejemplo@gmail.com") },
-                isError = correo.isNotEmpty() && !gmailValido(correo)
+                isError = errorCorreo != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth()
             )
-
-            if (correo.isNotEmpty() && !gmailValido(correo)) {
-                Text(
-                    text = "Solo se permiten correos Gmail válidos",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall
-                )
+            if (errorCorreo != null) {
+                Text(errorCorreo, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
             }
-            Spacer(modifier = Modifier.height(16.dp))
 
+            Spacer(Modifier.height(8.dp))
+
+            // ---------- CONTRASEÑA ----------
             OutlinedTextField(
-                value = contraseña,
-                onValueChange = { contraseña = it },
+                value = contrasena,
+                onValueChange = onContrasenaChange,
                 label = { Text("Contraseña") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Ingrese su contraseña") },
-                visualTransformation = if (contraseñaVisible) VisualTransformation.None
-                else PasswordVisualTransformation(),
+                visualTransformation = if (mostrarPass) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (contraseñaVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { contraseñaVisible = !contraseñaVisible }) {
-                        Icon(imageVector = image, contentDescription = "Mostrar/ocultar contraseña")
+                    IconButton(onClick = { mostrarPass = !mostrarPass }) {
+                        Icon(
+                            imageVector = if (mostrarPass) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (mostrarPass) "Ocultar contraseña" else "Mostrar contraseña"
+                        )
                     }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                isError = errorContrasena != null,
+                modifier = Modifier.fillMaxWidth()
             )
+            if (errorContrasena != null) {
+                Text(errorContrasena, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
-            Button(onClick = {onLoginExitoso()},
-                modifier = Modifier.fillMaxWidth(),
-                enabled = correo.isNotEmpty() && gmailValido(correo) && contraseña.isNotEmpty()
+            // ---------- BOTÓN ENTRAR ----------
+            Button(
+                onClick = onSubmit,
+                enabled = puedeEnviar && !enviando,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (enviando) {
+                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Validando...")
+                } else {
+                    Text("Entrar")
+                }
+            }
 
-            ) { Text("Inicia Seccion")}
+            if (mensajeError != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(mensajeError, color = MaterialTheme.colorScheme.error)
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Text(text = "no tienes una cuenta? clickea aqui,",
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onIrRegistro() }
-            )
+            // ---------- IR A REGISTRO ----------
+            OutlinedButton(onClick = onIrRegistro, modifier = Modifier.fillMaxWidth()) {
+                Text("Crear cuenta")
+            }
         }
-
-
-
     }
 }

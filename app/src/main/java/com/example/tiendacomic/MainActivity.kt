@@ -19,7 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.tiendacomic.ui.screen.CatalogoScreen
-import com.example.tiendacomic.ui.screen.LoginScreen
+import com.example.tiendacomic.ui.screen.LoginScreenVm
+//import com.example.tiendacomic.ui.screen.LoginScreenVm
 import com.example.tiendacomic.ui.screen.RegistroScreenVm
 import com.example.tiendacomic.ui.theme.TiendaComicTheme
 
@@ -50,7 +51,7 @@ class MainActivity : ComponentActivity() {
                                 CatalogoScreen() // pantalla de catálogo
                             }
                             mostrarLogin -> {
-                                LoginScreen(
+                                LoginScreenVm(
                                     onLoginExitoso = { mostrarCatalogo = true },
                                     onIrRegistro = { mostrarLogin = false }
                                 )
