@@ -41,13 +41,13 @@ fun AppTopBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),title = { // Slot del título
-            Text(
-                text = "Tienda De Comic", // Título visible
+            /*Text(
+                text = "Catalogo", // Título visible
                 style = MaterialTheme.typography.titleLarge, // Estilo grande
                 maxLines = 1,              // asegura una sola línea Int.MAX_VALUE   // permite varias líneas
                 overflow = TextOverflow.Ellipsis // agrega "..." si no cabe
 
-            )
+            )*/
         },
         /*
         navigationIcon = { // Ícono a la izquierda (hamburguesa)

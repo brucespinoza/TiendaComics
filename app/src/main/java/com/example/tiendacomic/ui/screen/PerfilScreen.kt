@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,44 +25,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.tiendacomic.navigation.Route
+import com.example.tiendacomic.ui.components.AppTopBar
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 //añadido Controllador en NavGraph
 @Composable
-fun PerfilScreen (
+fun PerfilScreen(
     navController: NavController,
     viewModel: ModeloAutenticacion = viewModel()
-
-){
+) {
     val uiState by viewModel.perfilUiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-
-
-        Text("Nombre: ${uiState.nombre}", style = MaterialTheme.typography.titleMedium)
-        Text("RUT: ${uiState.rut}", style = MaterialTheme.typography.titleMedium)
-        Text("Correo: ${uiState.correo}", style = MaterialTheme.typography.titleMedium)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = if (passwordVisible) "Contraseña: ${uiState.contrasena}" else "Contraseña: ******",
-                style = MaterialTheme.typography.titleMedium
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                onCatalogo = { navController.navigate(Route.Catalogo.path) },
+                onPerfil = { navController.navigate(Route.Perfil.path) },
+                onLogin = { navController.navigate(Route.Login.path) },
+                onRegistro = { navController.navigate(Route.Registro.path) }
             )
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = "Mostrar/ocultar contraseña"
+        }
+    ) { innerPadding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Nombre: ${uiState.nombre}", style = MaterialTheme.typography.titleMedium)
+            Text("RUT: ${uiState.rut}", style = MaterialTheme.typography.titleMedium)
+            Text("Correo: ${uiState.correo}", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (passwordVisible) "Contraseña: ${uiState.contrasena}" else "Contraseña: ******",
+                    style = MaterialTheme.typography.titleMedium
                 )
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.Visibility
+                        else Icons.Default.VisibilityOff,
+                        contentDescription = "Mostrar/ocultar contraseña"
+                    )
+                }
             }
         }
     }
-
-
 }

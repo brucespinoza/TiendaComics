@@ -30,10 +30,12 @@ fun NavGraph(navController: NavHostController) {
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Route.Login.path
+        startDestination = Route.Login.path //aqui modificamos la destinaciojn cuando ejecutamos
+
     ) {
         composable(Route.Catalogo.path) {
             CatalogoScreen(
+                navController = navController,//añadido el Tobar el controlador
                 onVerMas = { comic ->
                     navController.navigate("detalle/${comic.id}")
                 }

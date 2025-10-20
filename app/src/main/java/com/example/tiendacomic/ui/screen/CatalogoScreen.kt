@@ -18,7 +18,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.tiendacomic.R
+import com.example.tiendacomic.navigation.Route
+import com.example.tiendacomic.ui.components.AppTopBar
 import java.text.NumberFormat
 import java.util.*
 
@@ -33,8 +36,10 @@ data class Comic(
 // Pantalla principal del catálogo
 @Composable
 fun CatalogoScreen(
+    navController: NavController,                 // ← agregado para navegación
     onVerMas: (Comic) -> Unit = {}
 ) {
+
     // Lista de ejemplo (mock)
     val listaComics = listOf(
         Comic(1, "Spider-Man #1", 15990, R.drawable.spiderman),
@@ -42,13 +47,12 @@ fun CatalogoScreen(
         Comic(3, "Avengers: Endgame", 18990, R.drawable.avenger),
         Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men),
         Comic(5, "Iron Man: Extremis", 13490, R.drawable.ironman),
-        Comic(6, "4 Fantasticos #1", 14990, R.drawable.fantasticos),
+        Comic(6, "4 Fantasticos #1", 24990, R.drawable.fantasticos),
         Comic(7, "Narnia", 16990, R.drawable.narnia),
         Comic(8, "Alicia en el pais de las maravillas #1", 18990, R.drawable.alicia),
         Comic(9, "Power ranger #1", 17990, R.drawable.ranger),
         Comic(10, "Shrek #1", 19990, R.drawable.shrek),
-
-        )
+    )
 
     // Estado del texto de búsqueda
     var textoBusqueda by remember { mutableStateOf("") }
@@ -58,63 +62,77 @@ fun CatalogoScreen(
         it.titulo.contains(textoBusqueda, ignoreCase = true)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Catálogo de Cómics",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(8.dp)
-        )
-
-        // 🔹 Barra de búsqueda
-        OutlinedTextField(
-            value = textoBusqueda,
-            onValueChange = { textoBusqueda = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            label = { Text("Buscar cómic...") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar"
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Lista de cómics (filtrada)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(comicsFiltrados) { comic ->
-                ComicCard(comic = comic, onVerMas = { onVerMas(comic) })
-            }
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                onCatalogo = { navController.navigate(Route.Catalogo.path) },
+                onPerfil = { navController.navigate(Route.Perfil.path) },
+                onLogin = { navController.navigate(Route.Login.path) },
+                onRegistro = { navController.navigate(Route.Registro.path) }
+            )
         }
+    ) { innerPadding ->
 
-        // Si no se encuentra ningún cómic
-        if (comicsFiltrados.isEmpty()) {
-            Box(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .padding(8.dp)
+        ) {
+            Text(
+                text = "Catálogo de Cómics",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+
+            // 🔹 Barra de búsqueda
+            OutlinedTextField(
+                value = textoBusqueda,
+                onValueChange = { textoBusqueda = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                label = { Text("Buscar cómic...") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Buscar"
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Lista de cómics (filtrada)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("No se encontraron cómics", style = MaterialTheme.typography.bodyLarge)
+                items(comicsFiltrados) { comic ->
+                    ComicCard(comic = comic, onVerMas = { onVerMas(comic) })
+                }
+            }
+
+            // Si no se encuentra ningún cómic
+            if (comicsFiltrados.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No se encontraron cómics", style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
     }
 }
+
 
 // Componente para mostrar cada cómic
 @Composable
