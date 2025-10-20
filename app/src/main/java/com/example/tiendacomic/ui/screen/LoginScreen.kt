@@ -20,10 +20,12 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 
 // ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
+//añadido Controllador en NavGraph
 @Composable
 fun LoginScreenVm(
     onLoginExitoso: () -> Unit,
     onIrRegistro: () -> Unit
+
 ) {
     val vm: ModeloAutenticacion = viewModel()
     val state by vm.login.collectAsStateWithLifecycle()

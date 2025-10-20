@@ -23,10 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
-
+//añadido Controllador en NavGraph
 @Composable
-fun PerfilScreen (viewModel: ModeloAutenticacion = viewModel()
+fun PerfilScreen (
+    navController: NavController,
+    viewModel: ModeloAutenticacion = viewModel()
 
 ){
     val uiState by viewModel.perfilUiState.collectAsState()

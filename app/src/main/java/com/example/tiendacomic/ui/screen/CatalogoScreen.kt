@@ -16,7 +16,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.tiendacomic.R
+import com.example.tiendacomic.navigation.Route
+import com.example.tiendacomic.ui.components.AppTopBar
 import java.text.NumberFormat
 import java.util.*
 
@@ -26,47 +29,62 @@ data class Comic(
     val precio: Int,
     val imagenRes: Int
 )
-
+//añadido Controllador en NavGraph
 @Composable
-fun CatalogoScreen(
-    onVerMas: (Comic) -> Unit = {}
-) {
-    val listaComics = listOf(
-        Comic(1, "Spider-Man #1", 19990, R.drawable.spiderman),
-        Comic(2, "Batman: Año Uno", 14990, R.drawable.batman),
-        Comic(3, "Avengers: Endgame", 24990, R.drawable.avenger),
-        Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men),
-        Comic(5, "Iron Man #1", 19990, R.drawable.ironman),
-        Comic(6, "4 Fantasticos #1", 24990, R.drawable.fantasticos),
-
-        )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Catálogo de Cómics",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(8.dp)
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+fun CatalogoScreen(navController: NavController) {
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                onCatalogo = { navController.navigate(Route.Catalogo.path) },
+                onPerfil = { navController.navigate(Route.Perfil.path) },
+                onLogin = { navController.navigate(Route.Login.path) },
+                onRegistro = { navController.navigate(Route.Registro.path) }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .padding(8.dp)
         ) {
-            items(listaComics) { comic ->
-                ComicCard(comic = comic, onVerMas = { onVerMas(comic) })
+            Text(
+                text = "Catálogo de Cómics",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(8.dp)
+            )
+
+            val listaComics = listOf(
+                Comic(1, "Spider-Man #1", 19990, R.drawable.spiderman),
+                Comic(2, "Batman: Año Uno", 14990, R.drawable.batman),
+                Comic(3, "Avengers: Endgame", 24990, R.drawable.avenger),
+                Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men),
+                Comic(5, "Iron Man #1", 19990, R.drawable.ironman),
+                Comic(6, "4 Fantasticos #1", 24990, R.drawable.fantasticos),
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(listaComics) { comic ->
+                    ComicCard(comic = comic, onVerMas = {})
+                }
             }
         }
     }
 }
+
+
+
+
+
+
 
 @Composable
 fun ComicCard(
