@@ -33,7 +33,12 @@ fun NavGraph(navController: NavHostController) {
         startDestination = Route.Login.path
     ) {
         composable(Route.Catalogo.path) {
-            CatalogoScreen(navController)
+            CatalogoScreen(
+                onVerMas = { comic ->
+                    navController.navigate("detalle/${comic.id}")
+                }
+            )
+
         }
         composable(Route.Perfil.path) {
             PerfilScreen(navController)
