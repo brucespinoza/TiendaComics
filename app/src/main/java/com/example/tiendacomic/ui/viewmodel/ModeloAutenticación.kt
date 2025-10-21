@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
+
 //login UI
 data class LoginUiState(
     val correo: String = "",
@@ -57,7 +58,8 @@ private data class UsuarioDemo(
     val nombre: String,
     val rut: String,
     val correo: String,
-    val contrasena: String
+    val contrasena: String,
+    val rol: String // usuario o admin
 )
 
 // Viewmodel
@@ -66,7 +68,8 @@ class ModeloAutenticacion : ViewModel() {
 
     companion object {
         private val USUARIOS = mutableListOf(
-            UsuarioDemo(nombre = "Demo", rut = "12.345.678-5", correo = "demo@duoc.cl", contrasena = "Demo123!")
+            UsuarioDemo("Admin", "11.111.111-1", "Admin@gmail.com", "Admin123!", rol = "admin"),
+            UsuarioDemo(nombre = "Demo", rut = "12.345.678-5", correo = "demo@duoc.cl", contrasena = "Demo123!", rol = "usuario")
         )
     }
 
@@ -95,6 +98,10 @@ class ModeloAutenticacion : ViewModel() {
         _login.update { it.copy(puedeEnviar = puede) }
     }
 
+
+    private var _ultimoRol: String? = null
+    val ultimoRol: String? get() = _ultimoRol
+
     fun enviarLogin() {
         val s = _login.value
         if (!s.puedeEnviar || s.enviando) return
@@ -110,6 +117,20 @@ class ModeloAutenticacion : ViewModel() {
                     mensajeError = if (!ok) "Credenciales inválidas" else null
                 )
             }
+            //aqui agregamos si el login fue exitoso guardamos el rol en perfil
+            if (ok && usuario != null) {
+                _perfilUiState.update {
+                    it.copy(
+                        nombre = usuario.nombre,
+                        rut = usuario.rut,
+                        correo = usuario.correo,
+                        contrasena = usuario.contrasena
+                    )
+                }
+                // Aquí podrías exponer el rol si lo necesitas después
+                _ultimoRol = usuario.rol
+            }
+
         }
     }
 
@@ -158,6 +179,8 @@ class ModeloAutenticacion : ViewModel() {
         _registro.update { it.copy(puedeEnviar = sinErrores && llenos) }
     }
 
+
+
     fun enviarRegistro() {
         val s = _registro.value
         if (!s.puedeEnviar || s.enviando) return
@@ -176,7 +199,8 @@ class ModeloAutenticacion : ViewModel() {
                     nombre = s.nombre.trim(),
                     rut = s.rut.trim(),
                     correo = s.correo.trim(),
-                    contrasena = s.contrasena
+                    contrasena = s.contrasena,
+                    rol = "usuario"
                 )
             )
 

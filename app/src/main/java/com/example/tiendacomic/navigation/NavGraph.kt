@@ -3,10 +3,14 @@ package com.example.tiendacomic.navigation
 
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.tiendacomic.ui.screen.*
+import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
+//
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 
@@ -50,13 +54,29 @@ fun NavGraph(navController: NavHostController) {
                 onRegistroExitoso = { navController.navigate(Route.Login.path) },
                 onIrLogin = { navController.navigate(Route.Login.path) }
             )
-        }
+        }//
+
+        //aqui añadimos elo admin en modeloAutenticacion por rut
         composable(Route.Login.path) {
+            val vm: ModeloAutenticacion = viewModel()
+
             LoginScreenVm(
-                onLoginExitoso = { navController.navigate(Route.Catalogo.path) },
+                onLoginExitoso = {
+                    if (vm.ultimoRol == "admin") {
+                        navController.navigate(Route.Admin.path)
+                    } else {
+                        navController.navigate(Route.Catalogo.path)
+                    }
+                },
                 onIrRegistro = { navController.navigate(Route.Registro.path) }
             )
         }
+
+        //admin
+        composable(Route.Admin.path) {
+            AdminScreen()
+        }
+
 
     }
 }
