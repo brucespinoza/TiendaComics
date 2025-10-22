@@ -34,7 +34,7 @@ fun NavGraph(navController: NavHostController) {
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Route.Login.path //aqui modificamos la destinaciojn cuando ejecutamos
+        startDestination = Route.Catalogo.path //aqui modificamos la destinaciojn cuando ejecutamos
 
     ) {
         composable(Route.Catalogo.path) {
