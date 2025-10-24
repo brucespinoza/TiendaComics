@@ -23,14 +23,16 @@ import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 fun RegistroScreenVm(
 
     onRegistroExitoso: () -> Unit,  // Navegar a Login después de registrar
-    onIrLogin: () -> Unit           // Botón Ya tengo cuenta
+    onIrLogin: () -> Unit,           // Botón Ya tengo cuenta
+    vm: ModeloAutenticacion //base de datos
+
 ) {
-    val vm: ModeloAutenticacion = viewModel()
-    val estado by vm.registro.collectAsStateWithLifecycle()
+    //val vm: ModeloAutenticacion = viewModel()
+    val estado by vm.registro.collectAsStateWithLifecycle() //base de datos
 
     if (estado.exito) {
         vm.limpiarResultadoRegistro()
-        onRegistroExitoso()
+        onRegistroExitoso() //base de datos
     }
 
     RegistroScreen(

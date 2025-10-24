@@ -4,6 +4,7 @@ package com.example.tiendacomic.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tiendacomic.data.repositorio.UsuarioRepository
 import com.example.tiendacomic.domain.validaciones.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,25 +55,19 @@ data class PerfilUiState(
 
 // Modelo de usuarios
 
-private data class UsuarioDemo(
-    val nombre: String,
-    val rut: String,
-    val correo: String,
-    val contrasena: String,
-    val rol: String // usuario o admin
-)
+
 
 // Viewmodel
 
-class ModeloAutenticacion : ViewModel() {
-
+class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel() {
+    /*
     companion object {
         private val USUARIOS = mutableListOf(
             UsuarioDemo("Admin", "11.111.111-1", "Admin@gmail.com", "Admin123!", rol = "admin"),
             UsuarioDemo(nombre = "Demo", rut = "12.345.678-5", correo = "demo@duoc.cl", contrasena = "Demo123!", rol = "usuario")
         )
     }
-
+    */
     // Estados observables
     private val _login = MutableStateFlow(LoginUiState())
     val login: StateFlow<LoginUiState> = _login
@@ -105,34 +100,48 @@ class ModeloAutenticacion : ViewModel() {
     fun enviarLogin() {
         val s = _login.value
         if (!s.puedeEnviar || s.enviando) return
+
         viewModelScope.launch {
             _login.update { it.copy(enviando = true, mensajeError = null, exito = false) }
             delay(500)
-            val usuario = USUARIOS.firstOrNull { it.correo.equals(s.correo, ignoreCase = true) }
-            val ok = usuario != null && usuario.contrasena == s.contrasena
-            _login.update {
-                it.copy(
-                    enviando = false,
-                    exito = ok,
-                    mensajeError = if (!ok) "Credenciales inválidas" else null
-                )
-            }
-            //aqui agregamos si el login fue exitoso guardamos el rol en perfil
-            if (ok && usuario != null) {
-                _perfilUiState.update {
-                    it.copy(
-                        nombre = usuario.nombre,
-                        rut = usuario.rut,
-                        correo = usuario.correo,
-                        contrasena = usuario.contrasena
+            //aqui utilizamos el repositorio que consulta el sqlite para que no se me olvide
+            //remplazmos el enviar login ya no utilizamos las listas ahora si sqlite
+            val result = repository.login(s.correo, s.contrasena)
+
+            _login.update { estado ->
+                if (result.isSuccess) {
+                    //usuario obtenido en la base de datos sqlite
+                    val usuario = result.getOrNull()!!
+
+                    // Guardamos datos en perfil (cambios en el sqlite) para que no se me olvide
+                    _perfilUiState.update {
+                        it.copy(
+                            nombre = usuario.nombre,
+                            rut = usuario.rut,
+                            correo = usuario.correo,
+                            contrasena = usuario.contrasena
+                        )
+                    }
+                    //guardamos el rol
+                    _ultimoRol = usuario.rol
+
+                    estado.copy(
+                        enviando = false,
+                        exito = true,
+                        mensajeError = null
+                    )
+                } else {
+                    //error capturado en el repositorio correo
+                    estado.copy(
+                        enviando = false,
+                        exito = false,
+                        mensajeError = result.exceptionOrNull()?.message ?: "Credenciales inválidas"
                     )
                 }
-                // Aquí podrías exponer el rol si lo necesitas después
-                _ultimoRol = usuario.rol
             }
-
         }
     }
+
 
     fun limpiarResultadoLogin() {
         _login.update { it.copy(exito = false, mensajeError = null) }
@@ -179,34 +188,39 @@ class ModeloAutenticacion : ViewModel() {
         _registro.update { it.copy(puedeEnviar = sinErrores && llenos) }
     }
 
-
-
     fun enviarRegistro() {
         val s = _registro.value
         if (!s.puedeEnviar || s.enviando) return
+
         viewModelScope.launch {
             _registro.update { it.copy(enviando = true, mensajeError = null, exito = false) }
             delay(700)
-            val duplicado = USUARIOS.any { it.correo.equals(s.correo, ignoreCase = true) || it.rut.equals(s.rut, ignoreCase = true) }
 
-            if (duplicado) {
-                _registro.update { it.copy(enviando = false, exito = false, mensajeError = "El usuario ya existe") }
-                return@launch
-            }
-
-            USUARIOS.add(
-                UsuarioDemo(
-                    nombre = s.nombre.trim(),
-                    rut = s.rut.trim(),
-                    correo = s.correo.trim(),
-                    contrasena = s.contrasena,
-                    rol = "usuario"
-                )
+            // usamos el repositorio sqlite (que esta en )
+            val result = repository.registro(
+                nombre = s.nombre.trim(),
+                rut = s.rut.trim(),
+                correo = s.correo.trim(),
+                pass = s.contrasena.trim()
             )
 
-            _registro.update { it.copy(enviando = false, exito = true, mensajeError = null) }
+            _registro.update { estado ->
+                if (result.isSuccess) {
+                    estado.copy(enviando = false, exito = true, mensajeError = null)
+                } else {
+                    estado.copy(
+                        enviando = false,
+                        exito = false,
+                        mensajeError = result.exceptionOrNull()?.message ?: "No se pudo registrar"
+                    )
+                }
+            }
         }
     }
+
+
+
+
 
     fun limpiarResultadoRegistro() {
         _registro.update { it.copy(exito = false, mensajeError = null) }

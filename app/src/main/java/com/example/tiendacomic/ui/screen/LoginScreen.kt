@@ -24,11 +24,12 @@ import androidx.compose.material.icons.filled.VisibilityOff
 @Composable
 fun LoginScreenVm(
     onLoginExitoso: () -> Unit,
-    onIrRegistro: () -> Unit
+    onIrRegistro: () -> Unit,
+    vm: ModeloAutenticacion //base de datos
 
 ) {
-    val vm: ModeloAutenticacion = viewModel()
-    val state by vm.login.collectAsStateWithLifecycle()
+    //val vm: ModeloAutenticacion = viewModel() error
+    val state by vm.login.collectAsStateWithLifecycle() //base de datos
 
     if (state.exito) {
         vm.limpiarResultadoLogin()

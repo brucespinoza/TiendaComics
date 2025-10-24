@@ -1,40 +1,26 @@
 package com.example.tiendacomic.ui.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.tiendacomic.navigation.Route
 import com.example.tiendacomic.ui.components.AppTopBar
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
-//añadido Controllador en NavGraph
+
 @Composable
 fun PerfilScreen(
-    navController: NavController,
-    viewModel: ModeloAutenticacion = viewModel()
+    navController: NavHostController,
+    vm: ModeloAutenticacion //base de datos
 ) {
-    val uiState by viewModel.perfilUiState.collectAsState()
+    // Obtener el estado actual del perfil desde el ViewModel
+    val state = vm.perfilUiState.collectAsState().value //base de datos
     var passwordVisible by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -47,7 +33,6 @@ fun PerfilScreen(
             )
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,25 +40,40 @@ fun PerfilScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Nombre: ${uiState.nombre}", style = MaterialTheme.typography.titleMedium)
-            Text("RUT: ${uiState.rut}", style = MaterialTheme.typography.titleMedium)
-            Text("Correo: ${uiState.correo}", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Perfil de Usuario",style = MaterialTheme.typography.headlineSmall
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = "Nombre: ${state.nombre}", style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "RUT: ${state.rut}", style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Correo: ${state.correo}", style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = if (passwordVisible) "Contraseña: ${uiState.contrasena}" else "Contraseña: ******",
-                    style = MaterialTheme.typography.titleMedium
+                    text = if (passwordVisible)
+                        "Contraseña: ${state.contrasena}"
+                    else
+                        "Contraseña: ******",style = MaterialTheme.typography.titleMedium
                 )
+
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Default.Visibility
-                        else Icons.Default.VisibilityOff,
-                        contentDescription = "Mostrar/ocultar contraseña"
+                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "Mostrar/Ocultar contraseña"
                     )
                 }
             }
         }
     }
 }
+
