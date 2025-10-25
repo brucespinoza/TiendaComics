@@ -14,7 +14,7 @@ fun NavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.Catalogo.path
+        startDestination = Route.Login.path
     ) {
 
         composable(Route.Login.path) {

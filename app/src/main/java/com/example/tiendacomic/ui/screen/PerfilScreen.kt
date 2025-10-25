@@ -58,22 +58,10 @@ fun PerfilScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = if (passwordVisible)
-                        "Contraseña: ${state.contrasena}"
-                    else
-                        "Contraseña: ******",style = MaterialTheme.typography.titleMedium
-                )
 
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(
-                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = "Mostrar/Ocultar contraseña"
-                    )
                 }
             }
         }
-    }
-}
+
+
 
