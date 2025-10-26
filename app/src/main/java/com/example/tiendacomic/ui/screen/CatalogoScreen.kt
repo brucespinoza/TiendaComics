@@ -49,9 +49,9 @@ fun CatalogoScreen(
     navController: NavController,
     onVerMas: (Comic) -> Unit = {}
 ) {
-    // Lista de cómics (mock de ejemplo)
+    // 🔹 Lista de cómics disponibles
     val listaComics = listOf(
-        Comic(1, "Spider-Man #1", 15990, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío al equilibrar su vida como estudiante y superhéroe."),
+        Comic(1, "Membresía Premium", 49990, R.drawable.vip, "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
         Comic(2, "Batman: Año Uno", 12490, R.drawable.batman, "La historia de los primeros días de Bruce Wayne como el vigilante de Gotham."),
         Comic(3, "Avengers: Endgame", 18990, R.drawable.avenger, "Los Vengadores intentan revertir las consecuencias del chasquido de Thanos."),
         Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men, "Jean Grey pierde el control de sus poderes y pone en peligro a toda la humanidad."),
@@ -60,17 +60,22 @@ fun CatalogoScreen(
         Comic(7, "Narnia", 16990, R.drawable.narnia, "Un mundo mágico lleno de criaturas fantásticas y una eterna batalla entre el bien y el mal."),
         Comic(8, "Alicia en el país de las maravillas #1", 18990, R.drawable.alicia, "Alicia cae en un mundo surrealista lleno de personajes excéntricos."),
         Comic(9, "Power Ranger #1", 17990, R.drawable.ranger, "Un grupo de jóvenes héroes defiende la Tierra con sus trajes y zords."),
-        Comic(10, "Shrek #1", 19990, R.drawable.shrek, "El ogro más querido del cine se embarca en una aventura inesperada.")
+        Comic(10, "Spider-Man #1", 15990, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío al equilibrar su vida como estudiante y superhéroe."),
+
     )
 
-    // Estado del texto de búsqueda
+    // 🔹 Estado del texto de búsqueda
     var textoBusqueda by remember { mutableStateOf("") }
 
-    // Filtra los cómics según el texto ingresado
+    // 🔹 Estado del carrito (lista compartida entre cómics)
+    val carrito = remember { mutableStateListOf<Comic>() }
+
+    // 🔹 Filtrar cómics por texto de búsqueda
     val comicsFiltrados = listaComics.filter {
         it.titulo.contains(textoBusqueda, ignoreCase = true)
     }
 
+    // 🔹 Estructura principal con barra superior
     Scaffold(
         topBar = {
             AppTopBar(
@@ -79,6 +84,18 @@ fun CatalogoScreen(
                 onLogin = { navController.navigate(Route.Login.path) },
                 onRegistro = { navController.navigate(Route.Registro.path) }
             )
+        },
+        floatingActionButton = {
+            // 🛒 Botón flotante que lleva al carrito
+            FloatingActionButton(
+                onClick = { navController.navigate(Route.Carrito.path) },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.icono),
+                    contentDescription = "Carrito"
+                )
+            }
         }
     ) { innerPadding ->
 
@@ -89,7 +106,7 @@ fun CatalogoScreen(
                 .padding(innerPadding)
                 .padding(8.dp)
         ) {
-            // Título
+            // 🔹 Título principal
             Text(
                 text = "Catálogo de Cómics",
                 fontSize = 24.sp,
@@ -97,7 +114,7 @@ fun CatalogoScreen(
                 modifier = Modifier.padding(8.dp)
             )
 
-            // Barra de búsqueda
+            // 🔹 Campo de búsqueda
             OutlinedTextField(
                 value = textoBusqueda,
                 onValueChange = { textoBusqueda = it },
@@ -117,7 +134,7 @@ fun CatalogoScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Lista de cómics (grid)
+            // 🔹 Grilla de cómics
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
@@ -126,11 +143,18 @@ fun CatalogoScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(comicsFiltrados) { comic ->
-                    ComicCard(comic = comic)
+                    ComicCard(
+                        comic = comic,
+                        onVerMas = { onVerMas(comic) },
+                        onComprar = {
+                            carrito.add(comic)
+                            navController.navigate(Route.Carrito.path)
+                        }
+                    )
                 }
             }
 
-            // Mensaje si no se encuentra ningún cómic
+            // 🔹 Mensaje si no hay coincidencias
             if (comicsFiltrados.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -144,31 +168,34 @@ fun CatalogoScreen(
 }
 
 /*───────────────────────────────────────────────
- TARJETA INDIVIDUAL DE CADA CÓMIC
+ TARJETA DE CADA CÓMIC
 ───────────────────────────────────────────────*/
 @Composable
-fun ComicCard(comic: Comic) {
-    // Estados para la animación y el diálogo
+fun ComicCard(
+    comic: Comic,
+    onVerMas: () -> Unit,
+    onComprar: () -> Unit
+) {
     var seleccionado by remember { mutableStateOf(false) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    // Animación de escala (zoom in)
+    // 🔹 Animación de escala
     val escala by animateFloatAsState(
         targetValue = if (seleccionado) 1.05f else 1f,
         animationSpec = tween(durationMillis = 300)
     )
 
-    // Formatear precio
+    // 🔹 Formatear precio a CLP
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
         maximumFractionDigits = 0
     }
     val precioFormateado = formatoCLP.format(comic.precio)
 
-    // Tarjeta visual
+    // 🔹 Tarjeta visual
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
+            .height(280.dp)
             .graphicsLayer(scaleX = escala, scaleY = escala)
             .clickable {
                 seleccionado = true
@@ -186,7 +213,8 @@ fun ComicCard(comic: Comic) {
                 contentDescription = comic.titulo,
                 modifier = Modifier
                     .height(140.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
 
@@ -202,26 +230,35 @@ fun ComicCard(comic: Comic) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // 🔹 Botón “Ver más”
             Button(
-                onClick = {
-                    seleccionado = true
-                    mostrarDialogo = true
-                },
+                onClick = { mostrarDialogo = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Ver más")
             }
+
+            // 🔹 Botón “Comprar”
+            Button(
+                onClick = { onComprar() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Comprar")
+            }
         }
     }
 
-    // Mostrar el diálogo si se presiona
+    // 🔹 Diálogo de detalle
     if (mostrarDialogo) {
         ComicDialog(comic = comic, onDismiss = { mostrarDialogo = false })
     }
 }
 
 /*───────────────────────────────────────────────
- DIÁLOGO DEL CÓMIC (sin voz)
+ DIÁLOGO DE DETALLE DE CÓMIC
 ───────────────────────────────────────────────*/
 @Composable
 fun ComicDialog(comic: Comic, onDismiss: () -> Unit) {

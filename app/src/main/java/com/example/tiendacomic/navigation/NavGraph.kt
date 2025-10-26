@@ -14,9 +14,9 @@ fun NavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.Login.path
+        startDestination = Route.Catalogo.path // Pantalla inicial
     ) {
-
+        // ----- LOGIN -----
         composable(Route.Login.path) {
             LoginScreenVm(
                 vm = vm,
@@ -31,6 +31,7 @@ fun NavGraph(
             )
         }
 
+        // ----- REGISTRO -----
         composable(Route.Registro.path) {
             RegistroScreenVm(
                 vm = vm,
@@ -39,10 +40,12 @@ fun NavGraph(
             )
         }
 
+        // ----- CATÁLOGO -----
         composable(Route.Catalogo.path) {
             CatalogoScreen(navController)
         }
 
+        // ----- PERFIL -----
         composable(Route.Perfil.path) {
             PerfilScreen(
                 navController = navController,
@@ -50,9 +53,16 @@ fun NavGraph(
             )
         }
 
-
         composable(Route.Admin.path) {
             AdminScreen()
+        }
+
+        composable(Route.Carrito.path) {
+            CarritoScreen()
+        }
+
+        composable(Route.Membresia.path) {
+            MembresiaScreen()
         }
     }
 }
