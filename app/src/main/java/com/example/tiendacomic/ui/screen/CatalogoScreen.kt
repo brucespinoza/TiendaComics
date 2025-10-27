@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.example.tiendacomic.R
 import com.example.tiendacomic.navigation.Route
 import com.example.tiendacomic.ui.components.AppTopBar
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
 
@@ -38,6 +39,7 @@ data class Comic(
     val descripcion: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogoScreen(navController: NavController) {
     val listaComics = listOf(
@@ -54,7 +56,8 @@ fun CatalogoScreen(navController: NavController) {
     )
 
     var textoBusqueda by remember { mutableStateOf("") }
-    val carrito = remember { mutableStateListOf<Comic>() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     val comicsFiltrados = listaComics.filter {
         it.titulo.contains(textoBusqueda, ignoreCase = true)
@@ -69,19 +72,7 @@ fun CatalogoScreen(navController: NavController) {
                 onRegistro = { navController.navigate(Route.Registro.path) }
             )
         },
-        floatingActionButton = {
-            // FAB pequeño sin cubrir la vista
-            FloatingActionButton(
-                onClick = { navController.navigate(Route.Carrito.path) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(52.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icono),
-                    contentDescription = "Carrito"
-                )
-            }
-        }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
 
         Column(
@@ -127,12 +118,12 @@ fun CatalogoScreen(navController: NavController) {
                 items(comicsFiltrados) { comic ->
                     ComicCard(
                         comic = comic,
-                        onVerMas = { /* solo abre el diálogo */ },
+                        onVerMas = { /* abre el diálogo */ },
                         onComprar = {
-                            carrito.add(comic)
-                            navController.navigate(Route.Carrito.path)
-                        },
-                        onAgregarAlCarrito = { carrito.add(it) }
+                            scope.launch {
+                                snackbarHostState.showSnackbar("✅ Compra realizada con éxito")
+                            }
+                        }
                     )
                 }
             }
@@ -153,8 +144,7 @@ fun CatalogoScreen(navController: NavController) {
 fun ComicCard(
     comic: Comic,
     onVerMas: () -> Unit,
-    onComprar: () -> Unit,
-    onAgregarAlCarrito: (Comic) -> Unit
+    onComprar: () -> Unit
 ) {
     var seleccionado by remember { mutableStateOf(false) }
     var mostrarDialogo by remember { mutableStateOf(false) }
@@ -209,12 +199,12 @@ fun ComicCard(
             }
 
             OutlinedButton(
-                onClick = { onComprar() },
+                onClick = onComprar,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp)
             ) {
-                Text("Comprar")
+                Text("Finalizar compra")
             }
         }
     }
@@ -223,8 +213,8 @@ fun ComicCard(
         ComicDialog(
             comic = comic,
             onDismiss = { mostrarDialogo = false },
-            onAgregarAlCarrito = {
-                onAgregarAlCarrito(comic)
+            onComprar = {
+                onComprar()
                 mostrarDialogo = false
             }
         )
@@ -235,7 +225,7 @@ fun ComicCard(
 fun ComicDialog(
     comic: Comic,
     onDismiss: () -> Unit,
-    onAgregarAlCarrito: () -> Unit
+    onComprar: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -256,8 +246,8 @@ fun ComicDialog(
         },
         confirmButton = {
             Column {
-                Button(onClick = onAgregarAlCarrito, modifier = Modifier.fillMaxWidth()) {
-                    Text("Agregar al carrito")
+                Button(onClick = onComprar, modifier = Modifier.fillMaxWidth()) {
+                    Text("Finalizar compra")
                 }
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                     Text("Cerrar")
