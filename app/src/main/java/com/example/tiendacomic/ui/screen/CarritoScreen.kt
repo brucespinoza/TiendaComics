@@ -8,53 +8,37 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class) // para usar Scaffold experimental
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarritoScreen() {
+    // 🔹 Carrito vacío por defecto
+    val carrito = remember { mutableStateListOf<Comic>() }
 
-    // 🔹 Simulamos el carrito con algunos productos
-    val carrito = remember {
-        mutableStateListOf(
-            Comic(1, "Spider-Man #1", 15990, 0, ""),
-            Comic(10, "Membresía Premium", 4990, 0, "")
-        )
-    }
-
-    // 🔹 Formato de moneda CLP
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
-
-    // 🔹 Calcular total sumando los precios
     val total = carrito.sumOf { it.precio }
 
-    // 🔹 Estructura general de la pantalla
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Tu Carrito") })
-        }
-    ) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-        // 🔹 Contenedor principal de la pantalla
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Tu Carrito") }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-
-            // 🔹 Mostrar mensaje si el carrito está vacío
             if (carrito.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Tu carrito está vacío.")
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("🛒 Tu carrito está vacío.")
                 }
             } else {
-
-                // 🔹 Mostrar lista de cómics en el carrito
                 LazyColumn {
                     items(carrito) { item ->
                         Card(
@@ -63,13 +47,8 @@ fun CarritoScreen() {
                                 .padding(vertical = 4.dp),
                             elevation = CardDefaults.cardElevation(4.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Text(
-                                    text = item.titulo,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text(item.titulo, style = MaterialTheme.typography.titleMedium)
                                 Text(formatoCLP.format(item.precio))
                             }
                         }
@@ -77,25 +56,21 @@ fun CarritoScreen() {
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-
-                // 🔹 Mostrar total del carrito
-                Text(
-                    text = "Total: ${formatoCLP.format(total)}",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
+                Text("Total: ${formatoCLP.format(total)}", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 🔹 Botón para finalizar la compra
                 Button(
                     onClick = {
-                        // Aquí puedes agregar la lógica para finalizar compra
+                        carrito.clear()
+                        scope.launch {
+                            snackbarHostState.showSnackbar("✅ Su compra ha sido finalizada con éxito")
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Finalizar compra")
                 }
-            } // ← cierre del if/else
-        } // ← cierre del Column
-    } // ← cierre del Scaffold
+            }
+        }
+    }
 }
