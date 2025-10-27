@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -111,10 +113,42 @@ fun PerfilScreen(
             }) {
                 Text(if (photoUriString == null) "Tomar foto" else "Re-tomar foto")
             }
+
+            Spacer(Modifier.height(24.dp))
+
+            // ---------- COMPRAS REALIZADAS ----------
+            Text("Compras realizadas", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+
+            if (state.compras.isEmpty()) {
+                Text("Aún no tienes compras", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                // Lista simple de compras
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(state.compras) { titulo ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(titulo, style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
-
-
-
-

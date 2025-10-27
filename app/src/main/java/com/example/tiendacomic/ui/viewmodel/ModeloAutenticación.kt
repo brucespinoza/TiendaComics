@@ -1,7 +1,5 @@
 package com.example.tiendacomic.ui.viewmodel
 
-
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tiendacomic.data.repositorio.UsuarioRepository
@@ -11,8 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-
 
 //login UI
 data class LoginUiState(
@@ -44,30 +40,18 @@ data class RegistroUiState(
 )
 
 //Perfil UI
-
 data class PerfilUiState(
     val nombre: String = "",
     val rut: String = "",
     val correo: String = "",
     val contrasena: String = "",
+    val compras: List<String> = emptyList() // <-- lista de títulos comprados
 )
-
-
-// Modelo de usuarios
-
-
 
 // Viewmodel
 
 class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel() {
-    /*
-    companion object {
-        private val USUARIOS = mutableListOf(
-            UsuarioDemo("Admin", "11.111.111-1", "Admin@gmail.com", "Admin123!", rol = "admin"),
-            UsuarioDemo(nombre = "Demo", rut = "12.345.678-5", correo = "demo@duoc.cl", contrasena = "Demo123!", rol = "usuario")
-        )
-    }
-    */
+
     // Estados observables
     private val _login = MutableStateFlow(LoginUiState())
     val login: StateFlow<LoginUiState> = _login
@@ -76,7 +60,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     val registro: StateFlow<RegistroUiState> = _registro
 
     // Pagina de Login
-
     fun alCambiarCorreoLogin(valor: String) {
         _login.update { it.copy(correo = valor, errorCorreo = validarEmail(valor)) }
         recalcularPuedeEnviarLogin()
@@ -93,7 +76,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         _login.update { it.copy(puedeEnviar = puede) }
     }
 
-
     private var _ultimoRol: String? = null
     val ultimoRol: String? get() = _ultimoRol
 
@@ -104,25 +86,21 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         viewModelScope.launch {
             _login.update { it.copy(enviando = true, mensajeError = null, exito = false) }
             delay(500)
-            //aqui utilizamos el repositorio que consulta el sqlite para que no se me olvide
-            //remplazmos el enviar login ya no utilizamos las listas ahora si sqlite
             val result = repository.login(s.correo, s.contrasena)
 
             _login.update { estado ->
                 if (result.isSuccess) {
-                    //usuario obtenido en la base de datos sqlite
                     val usuario = result.getOrNull()!!
 
-                    // Guardamos datos en perfil (cambios en el sqlite) para que no se me olvide
                     _perfilUiState.update {
                         it.copy(
                             nombre = usuario.nombre,
                             rut = usuario.rut,
                             correo = usuario.correo,
                             contrasena = usuario.contrasena
+                            // compras queda como estaba (no lo sobreescribimos)
                         )
                     }
-                    //guardamos el rol
                     _ultimoRol = usuario.rol
 
                     estado.copy(
@@ -131,7 +109,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
                         mensajeError = null
                     )
                 } else {
-                    //error capturado en el repositorio correo
                     estado.copy(
                         enviando = false,
                         exito = false,
@@ -141,7 +118,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             }
         }
     }
-
 
     fun limpiarResultadoLogin() {
         _login.update { it.copy(exito = false, mensajeError = null) }
@@ -157,13 +133,11 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         recalcularPuedeEnviarRegistro()
     }
 
-
     fun alCambiarRut(valor: String) {
         val normalizado = valor.trim()
         _registro.update { it.copy(rut = normalizado, errorRut = validarRut(normalizado)) }
         recalcularPuedeEnviarRegistro()
     }
-
 
     fun alCambiarCorreoRegistro(valor: String) {
         _registro.update { it.copy(correo = valor, errorCorreo = validarEmail(valor)) }
@@ -196,7 +170,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             _registro.update { it.copy(enviando = true, mensajeError = null, exito = false) }
             delay(700)
 
-            // usamos el repositorio sqlite (que esta en )
             val result = repository.registro(
                 nombre = s.nombre.trim(),
                 rut = s.rut.trim(),
@@ -218,10 +191,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         }
     }
 
-
-
-
-
     fun limpiarResultadoRegistro() {
         _registro.update { it.copy(exito = false, mensajeError = null) }
     }
@@ -236,13 +205,26 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             nombre = "Bruce Espinoza",
             rut = "20.123.456-7",
             correo = "bruce@gmail.com",
-            contrasena = "Aa!12345"
+            contrasena = "Aa!12345",
+            compras = emptyList()
         )
     }
 
+    // ------------------- Funcionalidad de compras -------------------
+    /**
+     * Agrega el título del cómic a la lista de compras del perfil.
+     * Si ya existe el título en la lista, no lo duplica.
+     */
+    fun agregarCompra(tituloComic: String) {
+        _perfilUiState.update { estado ->
+            if (estado.compras.contains(tituloComic)) {
+                estado // ya está agregado
+            } else {
+                estado.copy(compras = estado.compras + tituloComic)
+            }
+        }
+    }
 }
-
-
 
 
 

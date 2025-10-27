@@ -32,7 +32,8 @@ import com.example.tiendacomic.R
 import com.example.tiendacomic.data.storage.UserPreferences
 import com.example.tiendacomic.navigation.Route
 import com.example.tiendacomic.ui.components.AppTopBar
-import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel  // === PASO 2: import del ViewModel ===
+import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
+import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion // <-- import agregado
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
@@ -49,7 +50,8 @@ data class Comic(
 @Composable
 fun CatalogoScreen(
     navController: NavController,
-    vm: CatalogoViewModel = viewModel() // === PASO 2: Inyectamos el ViewModel ===
+    vm: CatalogoViewModel = viewModel(),
+    authVm: ModeloAutenticacion // <-- nuevo parámetro para agregar compras al perfil
 ) {
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
@@ -57,15 +59,15 @@ fun CatalogoScreen(
 
     val listaComics = listOf(
         Comic(1, "Membresía Premium", 49990, R.drawable.vip, "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
-        Comic(2, "Batman: Año Uno", 12490, R.drawable.batman, "Los primeros días de Bruce Wayne como vigilante."),
-        Comic(3, "Avengers: Endgame", 18990, R.drawable.avenger, "Los Vengadores intentan revertir el chasquido de Thanos."),
-        Comic(4, "X-Men: Dark Phoenix", 14990, R.drawable.men, "Jean Grey pierde el control de sus poderes."),
-        Comic(5, "Iron Man: Extremis", 13490, R.drawable.ironman, "Tony Stark enfrenta un virus nanotecnológico."),
-        Comic(6, "4 Fantásticos #1", 24990, R.drawable.fantasticos, "Los héroes más grandes de Marvel."),
-        Comic(7, "Narnia", 16990, R.drawable.narnia, "Un mundo mágico lleno de criaturas fantásticas."),
+        Comic(2, "Batman: Año Uno", 20000, R.drawable.batman, "Los primeros días de Bruce Wayne como vigilante."),
+        Comic(3, "Avengers: Endgame", 20000, R.drawable.avenger, "Los Vengadores intentan revertir el chasquido de Thanos."),
+        Comic(4, "X-Men: Dark Phoenix", 15000, R.drawable.men, "Jean Grey pierde el control de sus poderes."),
+        Comic(5, "Iron Man: Extremis", 15000, R.drawable.ironman, "Tony Stark enfrenta un virus nanotecnológico."),
+        Comic(6, "4 Fantásticos #1", 25000, R.drawable.fantasticos, "Los héroes más grandes de Marvel."),
+        Comic(7, "Narnia", 17000, R.drawable.narnia, "Un mundo mágico lleno de criaturas fantásticas."),
         Comic(8, "Alicia en el país de las maravillas #1", 18990, R.drawable.aliciaa, "Alicia cae en un mundo surrealista."),
-        Comic(9, "Power Ranger #1", 17990, R.drawable.ranger, "Un grupo de jóvenes héroes defiende la Tierra."),
-        Comic(10, "Spider-Man #1", 15990, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío.")
+        Comic(9, "Power Ranger #1", 18000, R.drawable.ranger, "Un grupo de jóvenes héroes defiende la Tierra."),
+        Comic(10, "Spider-Man #1", 16000, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío.")
     )
 
     var textoBusqueda by remember { mutableStateOf("") }
@@ -131,13 +133,16 @@ fun CatalogoScreen(
                 items(comicsFiltrados) { comic ->
                     ComicCard(
                         comic = comic,
-                        esVip = vm.esVip,  // === PASO 4: le pasamos el estado VIP ===
+                        esVip = vm.esVip,
                         onVerMas = { /* abre el diálogo */ },
                         onComprar = {
-                            // === PASO 3: detectar compra del VIP ===
+                            // === PASO 3: detectar compra del VIP / registrar compra ===
                             if (comic.id == 1) {
                                 vm.activarVip() // activa membresía VIP
                             }
+                            // Registramos la compra en el perfil del usuario (título)
+                            authVm.agregarCompra(comic.titulo)
+
                             scope.launch {
                                 snackbarHostState.showSnackbar("✅ Compra realizada con éxito")
                             }
@@ -158,10 +163,11 @@ fun CatalogoScreen(
     }
 }
 
+// El resto de ComicCard y ComicDialog se mantiene igual que antes
 @Composable
 fun ComicCard(
     comic: Comic,
-    esVip: Boolean, // === PASO 4: recibimos si el usuario es VIP ===
+    esVip: Boolean,
     onVerMas: () -> Unit,
     onComprar: () -> Unit
 ) {
@@ -173,9 +179,8 @@ fun ComicCard(
         animationSpec = tween(durationMillis = 300)
     )
 
-    // === PASO 4: aplicar descuento si es VIP (excepto en la membresía misma) ===
     val precioFinal = if (esVip && comic.id != 1) {
-        (comic.precio * 0.7).toInt() // 30% de descuento
+        (comic.precio * 0.7).toInt()
     } else {
         comic.precio
     }
@@ -282,4 +287,3 @@ fun ComicDialog(
         }
     )
 }
-

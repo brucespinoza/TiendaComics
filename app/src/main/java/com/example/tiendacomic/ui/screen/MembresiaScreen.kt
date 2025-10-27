@@ -15,7 +15,7 @@ import java.util.*
 @Composable
 fun MembresiaScreen() {
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
-    val precio = 4990
+    val precio = 49990
 
     Scaffold(
         topBar = {

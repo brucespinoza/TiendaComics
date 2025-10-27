@@ -22,7 +22,6 @@ fun NavGraph(
 
     ) {
 
-
         // ----- LOGIN -----
         composable(Route.Login.path) {
             LoginScreenVm(
@@ -51,7 +50,8 @@ fun NavGraph(
         composable(Route.Catalogo.path) {
             CatalogoScreen(
                 navController = navController,
-                vm = catalogoVm    // <<< PASAMOS EL MISMO VM
+                vm = catalogoVm,    // <<< PASAMOS EL MISMO VM
+                authVm = vm         // <<< PASAMOS ModeloAutenticacion para registrar compras
             )
         }
 
@@ -76,5 +76,3 @@ fun NavGraph(
         }
     }
 }
-
-
