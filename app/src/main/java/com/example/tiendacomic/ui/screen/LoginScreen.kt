@@ -1,5 +1,6 @@
 package com.example.tiendacomic.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -17,6 +19,7 @@ import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import com.example.tiendacomic.R  // 👈 asegúrate de tener este import para el recurso drawable
 
 // ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
 @Composable
@@ -81,6 +84,17 @@ private fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            // ---------- NUEVA IMAGEN SUPERIOR ----------
+            Image(
+                painter = painterResource(id = R.drawable.login), //  usa tu imagen aquí
+                contentDescription = "Icono de usuario",
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(bottom = 16.dp)
+            )
+
+            // ---------- TÍTULO ----------
             Text("Login", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
             Text(
