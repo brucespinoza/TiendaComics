@@ -12,7 +12,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import androidx.compose.material.icons.Icons
@@ -20,16 +19,13 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 
 // ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
-//añadido Controllador en NavGraph
 @Composable
 fun LoginScreenVm(
     onLoginExitoso: () -> Unit,
     onIrRegistro: () -> Unit,
-    vm: ModeloAutenticacion //base de datos
-
+    vm: ModeloAutenticacion
 ) {
-    //val vm: ModeloAutenticacion = viewModel() error
-    val state by vm.login.collectAsStateWithLifecycle() //base de datos
+    val state by vm.login.collectAsStateWithLifecycle()
 
     if (state.exito) {
         vm.limpiarResultadoLogin()
@@ -67,13 +63,16 @@ private fun LoginScreen(
     onIrRegistro: () -> Unit
 ) {
     var mostrarPass by remember { mutableStateOf(false) }
-    //val bg = MaterialTheme.colorScheme.secondaryContainer
-    val fondo = MaterialTheme.colorScheme.background //fondo
+    val fondo = MaterialTheme.colorScheme.background
+
+    // Estados para el diálogo de recuperación
+    var mostrarDialogo by remember { mutableStateOf(false) }
+    var correoRecuperacion by remember { mutableStateOf("") }
+    var mensajeEnviado by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            //.background(bg)
             .background(fondo)
             .padding(16.dp),
         contentAlignment = Alignment.Center
@@ -101,7 +100,11 @@ private fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             if (errorCorreo != null) {
-                Text(errorCorreo, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    errorCorreo,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
 
             Spacer(Modifier.height(8.dp))
@@ -125,7 +128,11 @@ private fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             if (errorContrasena != null) {
-                Text(errorContrasena, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    errorContrasena,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
 
             Spacer(Modifier.height(16.dp))
@@ -152,10 +159,59 @@ private fun LoginScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // ---------- OLVIDÉ MI CONTRASEÑA ----------
+            TextButton(onClick = { mostrarDialogo = true }) {
+                Text("¿Olvidaste tu contraseña?")
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             // ---------- IR A REGISTRO ----------
             OutlinedButton(onClick = onIrRegistro, modifier = Modifier.fillMaxWidth()) {
                 Text("Crear cuenta")
             }
+        }
+
+        // ---------- DIALOGO DE RECUPERACIÓN ----------
+        if (mostrarDialogo) {
+            AlertDialog(
+                onDismissRequest = { mostrarDialogo = false },
+                title = { Text("Recuperar contraseña") },
+                text = {
+                    Column {
+                        Text("Introduce tu correo para recuperar tu contraseña:")
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = correoRecuperacion,
+                            onValueChange = { correoRecuperacion = it },
+                            label = { Text("Correo electrónico") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        )
+                        if (mensajeEnviado) {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Se envió un enlace de recuperación al correo ingresado.",
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        if (correoRecuperacion.isNotBlank()) {
+                            mensajeEnviado = true
+                        }
+                    }) {
+                        Text("Enviar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrarDialogo = false; mensajeEnviado = false }) {
+                        Text("Cerrar")
+                    }
+                }
+            )
         }
     }
 }

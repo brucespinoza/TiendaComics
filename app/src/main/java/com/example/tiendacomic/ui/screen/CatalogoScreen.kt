@@ -56,7 +56,7 @@ fun CatalogoScreen(
         Comic(5, "Iron Man: Extremis", 13490, R.drawable.ironman, "Tony Stark enfrenta un virus nanotecnológico."),
         Comic(6, "4 Fantásticos #1", 24990, R.drawable.fantasticos, "Los héroes más grandes de Marvel."),
         Comic(7, "Narnia", 16990, R.drawable.narnia, "Un mundo mágico lleno de criaturas fantásticas."),
-        Comic(8, "Alicia en el país de las maravillas #1", 18990, R.drawable.alicia, "Alicia cae en un mundo surrealista."),
+        Comic(8, "Alicia en el país de las maravillas #1", 18990, R.drawable.aliciaa, "Alicia cae en un mundo surrealista."),
         Comic(9, "Power Ranger #1", 17990, R.drawable.ranger, "Un grupo de jóvenes héroes defiende la Tierra."),
         Comic(10, "Spider-Man #1", 15990, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío.")
     )
