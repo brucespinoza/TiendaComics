@@ -71,8 +71,11 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.5.0")
     // Material icons (necesarios para Visibility / VisibilityOff)
     implementation("androidx.compose.material:material-icons-extended")
-
+    // Room (SQLite) - runtime y extensiones KTX
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    // Compilador de Room vía KSP
     ksp("androidx.room:room-compiler:2.6.1")
+    //manipular la carga de imagenes en el cache temporal
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }

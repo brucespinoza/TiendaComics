@@ -18,7 +18,7 @@ fun NavGraph(
     val catalogoVm: CatalogoViewModel = viewModel()
     NavHost(
         navController = navController,
-        startDestination = Route.Login.path // Pantalla inicial
+        startDestination = Route.Perfil.path // Pantalla inicial
 
     ) {
 
