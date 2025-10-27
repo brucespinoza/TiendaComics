@@ -23,10 +23,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tiendacomic.R
 import com.example.tiendacomic.navigation.Route
 import com.example.tiendacomic.ui.components.AppTopBar
+import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel  // === PASO 2: import del ViewModel ===
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
@@ -41,7 +43,11 @@ data class Comic(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogoScreen(navController: NavController) {
+fun CatalogoScreen(
+    navController: NavController,
+    vm: CatalogoViewModel = viewModel() // === PASO 2: Inyectamos el ViewModel ===
+) {
+
     val listaComics = listOf(
         Comic(1, "Membresía Premium", 49990, R.drawable.vip, "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
         Comic(2, "Batman: Año Uno", 12490, R.drawable.batman, "Los primeros días de Bruce Wayne como vigilante."),
@@ -118,8 +124,13 @@ fun CatalogoScreen(navController: NavController) {
                 items(comicsFiltrados) { comic ->
                     ComicCard(
                         comic = comic,
+                        esVip = vm.esVip,  // === PASO 4: le pasamos el estado VIP ===
                         onVerMas = { /* abre el diálogo */ },
                         onComprar = {
+                            // === PASO 3: detectar compra del VIP ===
+                            if (comic.id == 1) {
+                                vm.activarVip() // activa membresía VIP
+                            }
                             scope.launch {
                                 snackbarHostState.showSnackbar("✅ Compra realizada con éxito")
                             }
@@ -143,6 +154,7 @@ fun CatalogoScreen(navController: NavController) {
 @Composable
 fun ComicCard(
     comic: Comic,
+    esVip: Boolean, // === PASO 4: recibimos si el usuario es VIP ===
     onVerMas: () -> Unit,
     onComprar: () -> Unit
 ) {
@@ -154,10 +166,17 @@ fun ComicCard(
         animationSpec = tween(durationMillis = 300)
     )
 
+    // === PASO 4: aplicar descuento si es VIP (excepto en la membresía misma) ===
+    val precioFinal = if (esVip && comic.id != 1) {
+        (comic.precio * 0.7).toInt() // 30% de descuento
+    } else {
+        comic.precio
+    }
+
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
         maximumFractionDigits = 0
     }
-    val precioFormateado = formatoCLP.format(comic.precio)
+    val precioFormateado = formatoCLP.format(precioFinal)
 
     Card(
         modifier = Modifier
@@ -256,3 +275,4 @@ fun ComicDialog(
         }
     )
 }
+
