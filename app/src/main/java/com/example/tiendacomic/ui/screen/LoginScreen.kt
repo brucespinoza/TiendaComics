@@ -19,7 +19,9 @@ import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.platform.LocalContext
 import com.example.tiendacomic.R  // 👈 asegúrate de tener este import para el recurso drawable
+import com.example.tiendacomic.data.storage.UserPreferences
 
 // ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
 @Composable
@@ -29,11 +31,18 @@ fun LoginScreenVm(
     vm: ModeloAutenticacion
 ) {
     val state by vm.login.collectAsStateWithLifecycle()
+    //contexto
+    val context = LocalContext.current
+    //manipulo mi Data Store
+    val userPrefs = remember { UserPreferences(context) }
 
+    LaunchedEffect(state.exito) {
     if (state.exito) {
+        userPrefs.setLoggedIn(true)
         vm.limpiarResultadoLogin()
         onLoginExitoso()
     }
+}
 
     LoginScreen(
         correo = state.correo,
