@@ -1,17 +1,57 @@
 package com.example.tiendacomic.ui.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.tiendacomic.data.local.usuario.ComicEntity
+import com.example.tiendacomic.data.repositorio.ComicRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class CatalogoViewModel : ViewModel() {
+class CatalogoViewModel(
+    private val repo: ComicRepository
+) : ViewModel() {
 
-    // inicialmente no es VIP
-    var esVip by mutableStateOf(false)
-        private set
+    // Lista de comic
+    private val _comics = MutableStateFlow<List<ComicEntity>>(emptyList())
+    val comics: StateFlow<List<ComicEntity>> = _comics
+
+    //vip
+    private val _esVip = MutableStateFlow(false)
+    val esVip: StateFlow<Boolean> = _esVip
 
     fun activarVip() {
-        esVip = true
+        _esVip.value = true
+    }
+
+    //crud
+
+    fun cargarComics() {
+        viewModelScope.launch {
+            _comics.value = repo.obtenerTodos()
+        }
+    }
+
+    fun insertarComic(comic: ComicEntity) {
+        viewModelScope.launch {
+            repo.insertar(comic)
+            cargarComics()
+        }
+    }
+
+    fun actualizarComic(comic: ComicEntity) {
+        viewModelScope.launch {
+            repo.actualizar(comic)
+            cargarComics()
+        }
+    }
+
+    fun eliminarComic(comic: ComicEntity) {
+        viewModelScope.launch {
+            repo.eliminar(comic)
+            cargarComics()
+        }
     }
 }
+
+

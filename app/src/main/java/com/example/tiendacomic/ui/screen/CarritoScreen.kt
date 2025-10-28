@@ -63,7 +63,7 @@ fun CarritoScreen() {
                     onClick = {
                         carrito.clear()
                         scope.launch {
-                            snackbarHostState.showSnackbar("✅ Su compra ha sido finalizada con éxito")
+                            snackbarHostState.showSnackbar("Su compra ha sido finalizada con éxito")
                         }
                     },
                     modifier = Modifier.fillMaxWidth()

@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.FileProvider
 
-// ---------- Helpers ----------
+//camara
 private fun createTempImageFile(context: android.content.Context): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val storageDir = File(context.cacheDir, "images").apply {
@@ -40,7 +40,7 @@ private fun getImageUriForFile(context: android.content.Context, file: File): Ur
     return FileProvider.getUriForFile(context, authority, file)
 }
 
-// ---------- Pantalla Perfil ----------
+// Pantalla Perfil
 @Composable
 fun PerfilScreen(
     navController: NavHostController,
@@ -116,7 +116,7 @@ fun PerfilScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ---------- COMPRAS REALIZADAS ----------
+            //COMPRAS REALIZADAS
             Text("Compras realizadas", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 

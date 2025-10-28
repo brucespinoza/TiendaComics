@@ -12,10 +12,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.tiendacomic.data.local.database.AppDatabase
 import com.example.tiendacomic.data.repositorio.UsuarioRepository
+import com.example.tiendacomic.data.repositorio.ComicRepository
 import com.example.tiendacomic.navigation.NavGraph
 import com.example.tiendacomic.ui.theme.TiendaComicTheme
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacionFactory
+import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
+import com.example.tiendacomic.ui.viewmodel.CatalogoViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,12 +35,21 @@ class MainActivity : ComponentActivity() {
 fun AppRoot() {
     val context = LocalContext.current.applicationContext
 
+    // --- BD E INSTANCIAS DE ROOM ---
     val db = AppDatabase.getInstance(context)
-    val dao = db.usuarioDao()
-    val repository = UsuarioRepository(dao)
 
+    // ====== AUTENTICACION ======
+    val userDao = db.usuarioDao()
+    val userRepo = UsuarioRepository(userDao)
     val authViewModel: ModeloAutenticacion = viewModel(
-        factory = ModeloAutenticacionFactory(repository)
+        factory = ModeloAutenticacionFactory(userRepo)
+    )
+
+    // ====== CATÁLOGO ======
+    val comicDao = db.comicDao()
+    val comicRepo = ComicRepository(comicDao)
+    val catalogoVm: CatalogoViewModel = viewModel(
+        factory = CatalogoViewModelFactory(comicRepo)
     )
 
     val navController = rememberNavController()
@@ -46,8 +58,10 @@ fun AppRoot() {
         Surface(color = MaterialTheme.colorScheme.background) {
             NavGraph(
                 navController = navController,
-                vm = authViewModel
+                vm = authViewModel,
+                catalogoVm = catalogoVm   // <-- IMPORTANTE
             )
         }
     }
 }
+

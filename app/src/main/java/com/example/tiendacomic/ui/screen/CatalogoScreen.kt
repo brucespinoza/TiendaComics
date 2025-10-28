@@ -50,13 +50,15 @@ data class Comic(
 @Composable
 fun CatalogoScreen(
     navController: NavController,
-    vm: CatalogoViewModel = viewModel(),
+    vm: CatalogoViewModel = viewModel(), // ViewModel del catálogo
     authVm: ModeloAutenticacion // <-- nuevo parámetro para agregar compras al perfil
 ) {
+    val esVip by vm.esVip.collectAsState()//base de datos // Estado VIP
+    // local storeage para saber si estas logeado
     val context = LocalContext.current
     val userPrefs = remember { UserPreferences(context) }
     val isLoggedIn by userPrefs.isLoggedIn.collectAsStateWithLifecycle(false)
-
+    // Lista fija de comics
     val listaComics = listOf(
         Comic(1, "Membresía Premium", 49990, R.drawable.vip, "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
         Comic(2, "Batman: Año Uno", 20000, R.drawable.batman, "Los primeros días de Bruce Wayne como vigilante."),
@@ -69,11 +71,11 @@ fun CatalogoScreen(
         Comic(9, "Power Ranger #1", 18000, R.drawable.ranger, "Un grupo de jóvenes héroes defiende la Tierra."),
         Comic(10, "Spider-Man #1", 16000, R.drawable.spiderman, "Peter Parker enfrenta su mayor desafío.")
     )
-
+    // Estado de busqueda
     var textoBusqueda by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-
+    // Filtrado por busqueda
     val comicsFiltrados = listaComics.filter {
         it.titulo.contains(textoBusqueda, ignoreCase = true)
     }
@@ -103,6 +105,7 @@ fun CatalogoScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(8.dp)
             )
+            // busqueda
 
             OutlinedTextField(
                 value = textoBusqueda,
@@ -122,7 +125,7 @@ fun CatalogoScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
+            // Lista de cómics
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
@@ -133,10 +136,10 @@ fun CatalogoScreen(
                 items(comicsFiltrados) { comic ->
                     ComicCard(
                         comic = comic,
-                        esVip = vm.esVip,
+                        esVip = esVip,
                         onVerMas = { /* abre el diálogo */ },
                         onComprar = {
-                            // === PASO 3: detectar compra del VIP / registrar compra ===
+                            // detectar compra del VIP  registrar compra ===
                             if (comic.id == 1) {
                                 vm.activarVip() // activa membresía VIP
                             }
@@ -144,7 +147,7 @@ fun CatalogoScreen(
                             authVm.agregarCompra(comic.titulo)
 
                             scope.launch {
-                                snackbarHostState.showSnackbar("✅ Compra realizada con éxito")
+                                snackbarHostState.showSnackbar("Compra realizada con éxito")
                             }
                         }
                     )
@@ -171,25 +174,29 @@ fun ComicCard(
     onVerMas: () -> Unit,
     onComprar: () -> Unit
 ) {
-    var seleccionado by remember { mutableStateOf(false) }
-    var mostrarDialogo by remember { mutableStateOf(false) }
+    var seleccionado by remember { mutableStateOf(false) } // estado para animación al hacer click
+    var mostrarDialogo by remember { mutableStateOf(false) } //animacion
 
     val escala by animateFloatAsState(
         targetValue = if (seleccionado) 1.05f else 1f,
         animationSpec = tween(durationMillis = 300)
     )
 
-    val precioFinal = if (esVip && comic.id != 1) {
-        (comic.precio * 0.7).toInt()
+    // VIP paga 50% en TODOS los comics
+    val precioFinal = if (esVip) {
+        (comic.precio * 0.5).toInt()
     } else {
         comic.precio
     }
+
+
+
 
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
         maximumFractionDigits = 0
     }
     val precioFormateado = formatoCLP.format(precioFinal)
-
+    // Tarjeta individual de comic
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -239,7 +246,7 @@ fun ComicCard(
             }
         }
     }
-
+    // Si mostrarDialogo está en true, se abre el AlertDialog
     if (mostrarDialogo) {
         ComicDialog(
             comic = comic,
@@ -251,7 +258,7 @@ fun ComicCard(
         )
     }
 }
-
+// info del comic
 @Composable
 fun ComicDialog(
     comic: Comic,

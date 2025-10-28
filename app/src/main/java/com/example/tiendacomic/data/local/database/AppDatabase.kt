@@ -5,6 +5,8 @@ package com.example.tiendacomic.data.local.database
 import android.content.Context
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.tiendacomic.data.local.usuario.ComicDao
+import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.data.local.usuario.UsuarioDao
 import com.example.tiendacomic.data.local.usuario.UsuarioEntity
 import kotlinx.coroutines.CoroutineScope
@@ -12,14 +14,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [UsuarioEntity::class],
-    version = 1,
+    entities = [UsuarioEntity::class, ComicEntity::class],
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     //exponemos los dao que usaremos para los insert por defecto
     abstract fun usuarioDao(): UsuarioDao
     //obtener la instancia de la BD
+    abstract fun comicDao(): ComicDao
+
     companion object {
         private var INSTANCE: AppDatabase? = null
         private const val DB_NAME = "tienda_comic.db"

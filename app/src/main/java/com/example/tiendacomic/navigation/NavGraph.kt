@@ -8,14 +8,18 @@ import androidx.navigation.compose.composable
 import com.example.tiendacomic.ui.screen.*
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
+//base de datos catalogo
+
+
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    vm: ModeloAutenticacion
+    vm: ModeloAutenticacion,
+    catalogoVm: CatalogoViewModel
 
 ) {
-    val catalogoVm: CatalogoViewModel = viewModel()
+    //val catalogoVm: CatalogoViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = Route.Login.path // Pantalla inicial
@@ -23,7 +27,8 @@ fun NavGraph(
     ) {
 
         // ----- LOGIN -----
-        composable(Route.Login.path) {
+        // ----- LOGIN -----
+        composable(Route.Login.path) {   // <--- AQUÍ ESTABA MAL
             LoginScreenVm(
                 vm = vm,
                 onLoginExitoso = {
@@ -36,6 +41,7 @@ fun NavGraph(
                 onIrRegistro = { navController.navigate(Route.Registro.path) }
             )
         }
+
 
         // ----- REGISTRO -----
         composable(Route.Registro.path) {
@@ -51,7 +57,8 @@ fun NavGraph(
             CatalogoScreen(
                 navController = navController,
                 vm = catalogoVm,    // <<< PASAMOS EL MISMO VM
-                authVm = vm         // <<< PASAMOS ModeloAutenticacion para registrar compras
+                authVm = vm,         // <<< PASAMOS ModeloAutenticacion para registrar compras
+                //catalogoVm = catalogoVm
             )
         }
 
@@ -64,8 +71,10 @@ fun NavGraph(
         }
 
         composable(Route.Admin.path) {
-            AdminScreen()
+            AdminScreen(vm = catalogoVm)
         }
+
+
 
         composable(Route.Carrito.path) {
             CarritoScreen()
