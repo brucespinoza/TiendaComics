@@ -104,7 +104,7 @@ private fun LoginScreen(
             )
 
             // ---------- TÍTULO ----------
-            Text("Login", style = MaterialTheme.typography.headlineSmall)
+            Text("Crear cuenta", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
             Text(
                 text = "Ingresa con tu correo y contraseña.",

@@ -80,4 +80,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     //Data Store
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    //manipular galeria
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

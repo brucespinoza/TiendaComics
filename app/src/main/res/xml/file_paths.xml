@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <!--Directorio para almacenar las fotos de manera temporal -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permite guardar imágenes temporales en cache -->
     <cache-path
-        name="camera_path"
-        path="images/" />
+        name="camera_images"
+        path="." />
+
 </paths>
