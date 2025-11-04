@@ -46,10 +46,8 @@ fun AppRoot() {
     )
 
     // ====== CATÁLOGO ======
-    val comicDao = db.comicDao()
-    val comicRepo = ComicRepository(comicDao)
     val catalogoVm: CatalogoViewModel = viewModel(
-        factory = CatalogoViewModelFactory(comicRepo)
+        factory = CatalogoViewModelFactory(context)
     )
 
     val navController = rememberNavController()
@@ -59,9 +57,10 @@ fun AppRoot() {
             NavGraph(
                 navController = navController,
                 vm = authViewModel,
-                catalogoVm = catalogoVm   // <-- IMPORTANTE
+                catalogoVm = catalogoVm // Ahora pasa sin errores
             )
         }
     }
 }
+
 
