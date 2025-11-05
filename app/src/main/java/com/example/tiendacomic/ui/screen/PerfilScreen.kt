@@ -1,5 +1,6 @@
 package com.example.tiendacomic.ui.screen
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -26,18 +27,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.FileProvider
 
-//val de la camara
+//  Función para crear un archivo temporal para la foto
 private fun createTempImageFile(context: android.content.Context): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val storageDir = File(context.cacheDir, "images").apply { mkdirs() }
     return File.createTempFile("IMG_${timeStamp}_", ".jpg", storageDir)
 }
 
+//  Obtener URI segura con FileProvider
 private fun getImageUriForFile(context: android.content.Context, file: File): Uri {
     val authority = "${context.packageName}.fileprovider"
     return FileProvider.getUriForFile(context, authority, file)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
     navController: NavHostController,
@@ -49,26 +52,35 @@ fun PerfilScreen(
     var photoUriString by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
 
-    //camara launcher
+    //  Permiso de cámara (runtime)
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (!granted) {
+            Toast.makeText(context, "Se necesita permiso de cámara para tomar fotos", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // 🔹 Launcher para tomar foto
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
             photoUriString = pendingCaptureUri?.toString()
-            Toast.makeText(context, "Foto guardada correctamente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, " Foto guardada correctamente", Toast.LENGTH_SHORT).show()
         } else {
             pendingCaptureUri = null
-            Toast.makeText(context, "No se tomó ninguna foto", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, " No se tomó ninguna foto", Toast.LENGTH_SHORT).show()
         }
     }
 
-    //Galeria Launcher
+    //  Launcher para galería
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             photoUriString = uri.toString()
-            Toast.makeText(context, "Imagen seleccionada desde galería", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, " Imagen seleccionada desde galería", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -91,7 +103,7 @@ fun PerfilScreen(
         ) {
 
             // ----------------------------------------------------------
-            // Informacion de usuario
+            // INFORMACIÓN DEL USUARIO
             // ----------------------------------------------------------
             Text("Perfil de Usuario", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(24.dp))
@@ -102,8 +114,9 @@ fun PerfilScreen(
 
             Spacer(Modifier.height(30.dp))
 
-
-            // Foto de perfil
+            // ----------------------------------------------------------
+            // FOTO DE PERFIL
+            // ----------------------------------------------------------
             Text("Foto de Perfil", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
 
@@ -124,24 +137,17 @@ fun PerfilScreen(
             }
 
             // ----------------------------------------------------------
-            //BOTONES: Camara y Galeria
+            // BOTONES: CÁMARA Y GALERÍA
             // ----------------------------------------------------------
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                //Botton de la camara
+                //  Botón de cámara
                 Button(onClick = {
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     try {
                         val file = createTempImageFile(context)
                         val uri = getImageUriForFile(context, file)
                         pendingCaptureUri = uri
-
-                        //
-                        context.grantUriPermission(
-                            "com.android.camera",
-                            uri,
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        )
-
                         takePictureLauncher.launch(uri)
                     } catch (e: Exception) {
                         Toast.makeText(context, "Error al abrir la cámara: ${e.message}", Toast.LENGTH_LONG).show()
@@ -151,17 +157,19 @@ fun PerfilScreen(
                     Text("Tomar foto")
                 }
 
-                // Botton Galeria
+                //  Botón galería
                 Button(onClick = {
                     pickImageLauncher.launch("image/*")
                 }) {
-                    Text("Galeria")
+                    Text("Galería")
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Compras realizadas
+            // ----------------------------------------------------------
+            // COMPRAS REALIZADAS
+            // ----------------------------------------------------------
             Text("Compras realizadas", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 
@@ -196,6 +204,8 @@ fun PerfilScreen(
         }
     }
 }
+
+
 
 
 

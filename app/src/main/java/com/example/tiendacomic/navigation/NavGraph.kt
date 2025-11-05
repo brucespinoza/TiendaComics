@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.ui.screen.*
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
@@ -77,8 +78,25 @@ fun NavGraph(
 
 
         composable(Route.Carrito.path) {
-            CarritoScreen()
+            // 🔹 Ejemplo de prueba (puedes reemplazar por los cómics reales del usuario)
+            val comicsDemo = listOf(
+                 ComicEntity(
+                    1,
+                    "Batman: Año Uno",
+                    20000,
+                    "batman",
+                    "Los primeros días de Bruce Wayne"
+                ),
+                ComicEntity(2, "Narnia", 17000, "narnia", "Un mundo mágico lleno de criaturas fantásticas")
+            )
+
+            CarritoScreen(
+                carrito = comicsDemo,
+                onFinalizarCompra = { /* aquí podrías guardar en BD o limpiar */ },
+                onVaciarCarrito = { /* limpiar lista */ }
+            )
         }
+
 
         composable(Route.Membresia.path) {
             MembresiaScreen()

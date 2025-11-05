@@ -84,7 +84,7 @@ fun AdminScreen(vm: CatalogoViewModel) {
             else -> null
         }
 
-        //  Descripción: obligatoria, sin solo números
+        //  Descripcion obligatoria, sin solo números
         descripcionError = when {
             descripcion.isBlank() -> "Ingresa una descripción"
             descripcion.all { it.isDigit() } -> "No puede ser solo números"
