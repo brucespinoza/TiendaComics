@@ -15,7 +15,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -52,7 +54,12 @@ fun PerfilScreen(
     var photoUriString by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
 
-    //  Permiso de cámara (runtime)
+    // Estados locales para edición
+    var nombre by rememberSaveable { mutableStateOf(state.nombre) }
+    var correo by rememberSaveable { mutableStateOf(state.correo) }
+    var mostrandoDialogoContrasena by remember { mutableStateOf(false) }
+
+    // Permiso de cámara
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -108,11 +115,42 @@ fun PerfilScreen(
             Text("Perfil de Usuario", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(24.dp))
 
-            Text("Nombre: ${state.nombre}", style = MaterialTheme.typography.titleMedium)
-            Text("RUT: ${state.rut}", style = MaterialTheme.typography.titleMedium)
-            Text("Correo: ${state.correo}", style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            Spacer(Modifier.height(30.dp))
+            OutlinedTextField(
+                value = correo,
+                onValueChange = { correo = it },
+                label = { Text("Correo") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    vm.actualizarPerfil(nombre, correo)
+                    Toast.makeText(context, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar cambios")
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = { mostrandoDialogoContrasena = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cambiar contraseña")
+            }
+
+            Spacer(Modifier.height(24.dp))
 
             // ----------------------------------------------------------
             // FOTO DE PERFIL
@@ -141,7 +179,6 @@ fun PerfilScreen(
             // ----------------------------------------------------------
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                //  Botón de cámara
                 Button(onClick = {
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     try {
@@ -157,7 +194,6 @@ fun PerfilScreen(
                     Text("Tomar foto")
                 }
 
-                //  Botón galería
                 Button(onClick = {
                     pickImageLauncher.launch("image/*")
                 }) {
@@ -201,12 +237,68 @@ fun PerfilScreen(
                     }
                 }
             }
+
+            // ----------------------------------------------------------
+            // DIÁLOGO DE CAMBIO DE CONTRASEÑA
+            // ----------------------------------------------------------
+            if (mostrandoDialogoContrasena) {
+                Dialog(onDismissRequest = { mostrandoDialogoContrasena = false }) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium,
+                        tonalElevation = 8.dp
+                    ) {
+                        var actual by remember { mutableStateOf("") }
+                        var nueva by remember { mutableStateOf("") }
+                        var confirmar by remember { mutableStateOf("") }
+
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Cambiar Contraseña", style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = actual,
+                                onValueChange = { actual = it },
+                                label = { Text("Contraseña actual") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = nueva,
+                                onValueChange = { nueva = it },
+                                label = { Text("Nueva contraseña") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = confirmar,
+                                onValueChange = { confirmar = it },
+                                label = { Text("Confirmar nueva contraseña") },
+                                visualTransformation = PasswordVisualTransformation(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = {
+                                    val result = vm.cambiarContrasena(actual, nueva, confirmar)
+                                    Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+                                    if (result == "Contraseña actualizada correctamente") {
+                                        mostrandoDialogoContrasena = false
+                                    }
+                                }) {
+                                    Text("Aceptar")
+                                }
+                                OutlinedButton(onClick = { mostrandoDialogoContrasena = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
-
-
-
-
-
-

@@ -7,7 +7,7 @@ class UsuarioRepository(
     private val usuarioDao: UsuarioDao
 ) {
 
-    // //inicio de sesion
+    // ------------------ LOGIN ------------------
     suspend fun login(correo: String, pass: String): Result<UsuarioEntity> {
         val user = usuarioDao.obtenerPorCorreo(correo)
         return if (user != null && user.contrasena == pass) {
@@ -17,9 +17,8 @@ class UsuarioRepository(
         }
     }
 
-    // //registrar un usuario nuevo
+    // ------------------ REGISTRO ------------------
     suspend fun registro(nombre: String, rut: String, correo: String, pass: String): Result<Long> {
-
         val exists = usuarioDao.obtenerPorCorreo(correo) != null
         if (exists) {
             return Result.failure(IllegalArgumentException("Correo en uso"))
@@ -36,5 +35,29 @@ class UsuarioRepository(
         )
 
         return Result.success(id)
+    }
+
+    // ------------------ ACTUALIZAR PERFIL ------------------
+    suspend fun actualizarPerfil(correo: String, nuevoNombre: String, nuevoCorreo: String): Result<Unit> {
+        val user = usuarioDao.obtenerPorCorreo(correo)
+        return if (user != null) {
+            val actualizado = user.copy(nombre = nuevoNombre, correo = nuevoCorreo)
+            usuarioDao.actualizar(actualizado)
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        }
+    }
+
+    // ------------------ CAMBIAR CONTRASEÑA ------------------
+    suspend fun actualizarContrasena(correo: String, nueva: String): Result<Unit> {
+        val user = usuarioDao.obtenerPorCorreo(correo)
+        return if (user != null) {
+            val actualizado = user.copy(contrasena = nueva)
+            usuarioDao.actualizar(actualizado)
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        }
     }
 }

@@ -21,6 +21,7 @@ data class LoginUiState(
     val exito: Boolean = false,
     val mensajeError: String? = null
 )
+
 //Registro UI
 data class RegistroUiState(
     val nombre: String = "",
@@ -45,21 +46,38 @@ data class PerfilUiState(
     val rut: String = "",
     val correo: String = "",
     val contrasena: String = "",
-    val compras: List<String> = emptyList() // <-- lista de títulos comprados
+    val compras: List<String> = emptyList()
 )
 
-// Viewmodel
-
+// ViewModel principal
 class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel() {
 
-    // Estados observables
+    // ------------------- LOGIN -------------------
     private val _login = MutableStateFlow(LoginUiState())
     val login: StateFlow<LoginUiState> = _login
 
     private val _registro = MutableStateFlow(RegistroUiState())
     val registro: StateFlow<RegistroUiState> = _registro
 
-    // Pagina de Login
+    private var _ultimoRol: String? = null
+    val ultimoRol: String? get() = _ultimoRol
+
+    // ------------------- PERFIL -------------------
+    private val _perfilUiState = MutableStateFlow(PerfilUiState())
+    val perfilUiState: StateFlow<PerfilUiState> = _perfilUiState
+
+    init {
+        // Usuario de ejemplo inicial
+        _perfilUiState.value = PerfilUiState(
+            nombre = "Bruce Espinoza",
+            rut = "20.123.456-7",
+            correo = "bruce@gmail.com",
+            contrasena = "Aa!12345",
+            compras = emptyList()
+        )
+    }
+
+    // ------------------- LOGIN LÓGICA -------------------
     fun alCambiarCorreoLogin(valor: String) {
         _login.update { it.copy(correo = valor, errorCorreo = validarEmail(valor)) }
         recalcularPuedeEnviarLogin()
@@ -76,38 +94,28 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         _login.update { it.copy(puedeEnviar = puede) }
     }
 
-    private var _ultimoRol: String? = null
-    val ultimoRol: String? get() = _ultimoRol
-
     fun enviarLogin() {
         val s = _login.value
         if (!s.puedeEnviar || s.enviando) return
 
         viewModelScope.launch {
             _login.update { it.copy(enviando = true, mensajeError = null, exito = false) }
-            delay(500)
+            delay(400)
             val result = repository.login(s.correo, s.contrasena)
 
             _login.update { estado ->
                 if (result.isSuccess) {
                     val usuario = result.getOrNull()!!
-
                     _perfilUiState.update {
                         it.copy(
                             nombre = usuario.nombre,
                             rut = usuario.rut,
                             correo = usuario.correo,
                             contrasena = usuario.contrasena
-                            // compras queda como estaba (no lo sobreescribimos)
                         )
                     }
                     _ultimoRol = usuario.rol
-
-                    estado.copy(
-                        enviando = false,
-                        exito = true,
-                        mensajeError = null
-                    )
+                    estado.copy(enviando = false, exito = true, mensajeError = null)
                 } else {
                     estado.copy(
                         enviando = false,
@@ -123,8 +131,7 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         _login.update { it.copy(exito = false, mensajeError = null) }
     }
 
-    // Pagina de REGISTRO
-
+    // ------------------- REGISTRO LÓGICA -------------------
     fun alCambiarNombre(valor: String) {
         val filtrado = valor.filter { it.isLetter() || it.isWhitespace() }
         _registro.update {
@@ -158,7 +165,8 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     private fun recalcularPuedeEnviarRegistro() {
         val s = _registro.value
         val sinErrores = listOf(s.errorNombre, s.errorRut, s.errorCorreo, s.errorContrasena, s.errorConfirmar).all { it == null }
-        val llenos = s.nombre.isNotBlank() && s.rut.isNotBlank() && s.correo.isNotBlank() && s.contrasena.isNotBlank() && s.confirmar.isNotBlank()
+        val llenos = s.nombre.isNotBlank() && s.rut.isNotBlank() && s.correo.isNotBlank() &&
+                s.contrasena.isNotBlank() && s.confirmar.isNotBlank()
         _registro.update { it.copy(puedeEnviar = sinErrores && llenos) }
     }
 
@@ -195,42 +203,60 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         _registro.update { it.copy(exito = false, mensajeError = null) }
     }
 
-    //Perfil de usuario
-    private val _perfilUiState = MutableStateFlow(PerfilUiState())
-    val perfilUiState: StateFlow<PerfilUiState> = _perfilUiState
-
-    init {
-        // Simulamos cargar los datos del usuario
-        _perfilUiState.value = PerfilUiState(
-            nombre = "Bruce Espinoza",
-            rut = "20.123.456-7",
-            correo = "bruce@gmail.com",
-            contrasena = "Aa!12345",
-            compras = emptyList()
-        )
-    }
-
-    // ------------------- Funcionalidad de compras -------------------
-    /**
-     * Agrega el título del cómic a la lista de compras del perfil.
-     * Si ya existe el título en la lista, no lo duplica.
-     */
+    // ------------------- COMPRAS -------------------
     fun agregarCompra(tituloComic: String) {
         _perfilUiState.update { estado ->
-            if (estado.compras.contains(tituloComic)) {
-                estado // ya está agregado
-            } else {
-                estado.copy(compras = estado.compras + tituloComic)
-            }
+            if (estado.compras.contains(tituloComic)) estado
+            else estado.copy(compras = estado.compras + tituloComic)
         }
     }
+
+    // ------------------- PERFIL -------------------
+    fun actualizarPerfil(nombreNuevo: String, correoNuevo: String) {
+        if (nombreNuevo.isBlank() || correoNuevo.isBlank()) return
+
+        val usuarioActual = _perfilUiState.value
+        _perfilUiState.update {
+            it.copy(nombre = nombreNuevo.trim(), correo = correoNuevo.trim())
+        }
+
+        // Guardar en BD
+        viewModelScope.launch {
+            repository.actualizarPerfil(usuarioActual.correo, nombreNuevo.trim(), correoNuevo.trim())
+        }
+    }
+
+    fun cambiarContrasena(actual: String, nueva: String, confirmar: String): String {
+        val usuario = _perfilUiState.value
+
+        // Validar que la contraseña actual coincida
+        if (actual != usuario.contrasena)
+            return "❌ La contraseña actual es incorrecta"
+
+        // Validar la complejidad de la nueva contraseña
+        val errorNueva = validarContraseña(nueva)
+        if (errorNueva != null)
+            return "❌ $errorNueva"
+
+        // Validar confirmación
+        if (nueva != confirmar)
+            return "❌ Las contraseñas no coinciden"
+
+        // Actualizar en base de datos (repositorio + estado actual)
+        viewModelScope.launch {
+            val resultado = repository.actualizarContrasena(usuario.correo, nueva)
+            if (resultado.isSuccess) {
+                _perfilUiState.update {
+                    it.copy(contrasena = nueva)
+                }
+            }
+        }
+
+        // Mensaje final
+        return "✅ Contraseña actualizada correctamente"
+    }
+
 }
-
-
-
-
-
-
 
 
 
