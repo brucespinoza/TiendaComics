@@ -9,6 +9,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
@@ -251,6 +255,11 @@ fun PerfilScreen(
                         var nueva by remember { mutableStateOf("") }
                         var confirmar by remember { mutableStateOf("") }
 
+                        // Estados para mostrar/ocultar contraseñas
+                        var mostrarActual by remember { mutableStateOf(false) }
+                        var mostrarNueva by remember { mutableStateOf(false) }
+                        var mostrarConfirmar by remember { mutableStateOf(false) }
+
                         Column(
                             modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -258,25 +267,57 @@ fun PerfilScreen(
                             Text("Cambiar Contraseña", style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(12.dp))
 
+                            // Contraseña actual
                             OutlinedTextField(
                                 value = actual,
                                 onValueChange = { actual = it },
                                 label = { Text("Contraseña actual") },
-                                visualTransformation = PasswordVisualTransformation(),
+                                singleLine = true,
+                                visualTransformation = if (mostrarActual) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    IconButton(onClick = { mostrarActual = !mostrarActual }) {
+                                        Icon(
+                                            imageVector = if (mostrarActual) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                            contentDescription = if (mostrarActual) "Ocultar contraseña" else "Mostrar contraseña"
+                                        )
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
+
+                            // Nueva contraseña
                             OutlinedTextField(
                                 value = nueva,
                                 onValueChange = { nueva = it },
                                 label = { Text("Nueva contraseña") },
-                                visualTransformation = PasswordVisualTransformation(),
+                                singleLine = true,
+                                visualTransformation = if (mostrarNueva) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    IconButton(onClick = { mostrarNueva = !mostrarNueva }) {
+                                        Icon(
+                                            imageVector = if (mostrarNueva) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                            contentDescription = if (mostrarNueva) "Ocultar contraseña" else "Mostrar contraseña"
+                                        )
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
+
+                            // Confirmar nueva contraseña
                             OutlinedTextField(
                                 value = confirmar,
                                 onValueChange = { confirmar = it },
                                 label = { Text("Confirmar nueva contraseña") },
-                                visualTransformation = PasswordVisualTransformation(),
+                                singleLine = true,
+                                visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
+                                        Icon(
+                                            imageVector = if (mostrarConfirmar) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                            contentDescription = if (mostrarConfirmar) "Ocultar contraseña" else "Mostrar contraseña"
+                                        )
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             )
 
@@ -285,7 +326,7 @@ fun PerfilScreen(
                                 Button(onClick = {
                                     val result = vm.cambiarContrasena(actual, nueva, confirmar)
                                     Toast.makeText(context, result, Toast.LENGTH_LONG).show()
-                                    if (result == "Contraseña actualizada correctamente") {
+                                    if (result == "✅ Contraseña actualizada correctamente") {
                                         mostrandoDialogoContrasena = false
                                     }
                                 }) {
