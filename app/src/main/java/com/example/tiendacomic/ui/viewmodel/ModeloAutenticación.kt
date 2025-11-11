@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-//login UI
+// ------------------- LOGIN UI -------------------
 data class LoginUiState(
     val correo: String = "",
     val contrasena: String = "",
@@ -22,7 +22,7 @@ data class LoginUiState(
     val mensajeError: String? = null
 )
 
-//Registro UI
+// ------------------- REGISTRO UI -------------------
 data class RegistroUiState(
     val nombre: String = "",
     val rut: String = "",
@@ -40,16 +40,18 @@ data class RegistroUiState(
     val mensajeError: String? = null
 )
 
-//Perfil UI
+// ------------------- PERFIL UI -------------------
 data class PerfilUiState(
     val nombre: String = "",
     val rut: String = "",
     val correo: String = "",
     val contrasena: String = "",
-    val compras: List<String> = emptyList()
+    val compras: List<String> = emptyList(),
+    val esVip: Boolean = false,         // NUEVO: Flag VIP
+    val vipExpiracion: Long? = null     // NUEVO: Timestamp de expiración de membresía
 )
 
-// ViewModel principal
+// ------------------- VIEWMODEL -------------------
 class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel() {
 
     // ------------------- LOGIN -------------------
@@ -73,7 +75,9 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             rut = "20.123.456-7",
             correo = "bruce@gmail.com",
             contrasena = "Aa!12345",
-            compras = emptyList()
+            compras = emptyList(),
+            esVip = false,
+            vipExpiracion = null
         )
     }
 
@@ -152,7 +156,7 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     }
 
     fun alCambiarContrasenaRegistro(valor: String) {
-        _registro.update { it.copy(contrasena = valor, errorContrasena = validarContraseña(valor)) }
+        _registro.update { it.copy(contrasena = valor) }
         _registro.update { it.copy(errorConfirmar = validarConfirmarContraseña(it.contrasena, it.confirmar)) }
         recalcularPuedeEnviarRegistro()
     }
@@ -229,34 +233,51 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     fun cambiarContrasena(actual: String, nueva: String, confirmar: String): String {
         val usuario = _perfilUiState.value
 
-        // Validar que la contraseña actual coincida
         if (actual != usuario.contrasena)
             return "❌ La contraseña actual es incorrecta"
 
-        // Validar la complejidad de la nueva contraseña
         val errorNueva = validarContraseña(nueva)
         if (errorNueva != null)
             return "❌ $errorNueva"
 
-        // Validar confirmación
         if (nueva != confirmar)
             return "❌ Las contraseñas no coinciden"
 
-        // Actualizar en base de datos (repositorio + estado actual)
         viewModelScope.launch {
             val resultado = repository.actualizarContrasena(usuario.correo, nueva)
             if (resultado.isSuccess) {
-                _perfilUiState.update {
-                    it.copy(contrasena = nueva)
-                }
+                _perfilUiState.update { it.copy(contrasena = nueva) }
             }
         }
 
-        // Mensaje final
         return "✅ Contraseña actualizada correctamente"
     }
 
+    // ------------------- VIP -------------------
+    fun activarVip() {
+        val ahora = System.currentTimeMillis()
+        val unAno = 365L * 24 * 60 * 60 * 1000
+        _perfilUiState.update {
+            it.copy(
+                esVip = true,
+                vipExpiracion = ahora + unAno
+            )
+        }
+    }
+
+    fun verificarVip(): Boolean {
+        val estado = _perfilUiState.value
+        return estado.esVip && (estado.vipExpiracion?.let { it > System.currentTimeMillis() } ?: false)
+    }
+
+    fun renovarVip() {
+        val ahora = System.currentTimeMillis()
+        val unAno = 365L * 24 * 60 * 60 * 1000
+        _perfilUiState.update {
+            it.copy(
+                esVip = true,
+                vipExpiracion = ahora + unAno
+            )
+        }
+    }
 }
-
-
-

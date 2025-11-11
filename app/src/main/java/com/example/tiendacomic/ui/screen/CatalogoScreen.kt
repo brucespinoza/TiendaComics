@@ -74,10 +74,20 @@ fun CatalogoScreen(
         listaBase + nuevos
     }
 
-    // --- Filtro de búsqueda ---
-    val comicsFiltrados = comicsCombinados.filter {
-        it.titulo.contains(textoBusqueda, ignoreCase = true)
-    }
+    // --- Filtro de búsqueda + ocultar membresía si ya es VIP ---
+    val comicsFiltrados = comicsCombinados
+        .filter {
+            it.titulo.contains(textoBusqueda, ignoreCase = true)
+        }
+        .filter { comic ->
+            // 🔹 Si es VIP, ocultar la membresía
+            if (esVip && (comic.titulo.contains("Membresía", true) || comic.titulo.contains("Premium", true))) {
+                false
+            } else {
+                true
+            }
+        }
+
 
     val formatoCLP = remember {
         NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {

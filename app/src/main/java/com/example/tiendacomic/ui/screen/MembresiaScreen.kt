@@ -8,14 +8,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.tiendacomic.R
+import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import java.text.NumberFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MembresiaScreen() {
+fun MembresiaScreen(authVm: ModeloAutenticacion) {
     val formatoCLP = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
     val precio = 49990
+
+    val esVip = authVm.verificarVip()
 
     Scaffold(
         topBar = {
@@ -51,11 +54,25 @@ fun MembresiaScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = { /* TODO: comprar membresía */ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Comprar membresía")
+            if (esVip) {
+                Text(
+                    text = "🎉 Ya eres miembro VIP. Tu membresía vence el: ${
+                        authVm.perfilUiState.value.vipExpiracion?.let {
+                            java.text.SimpleDateFormat("dd/MM/yyyy").format(it)
+                        } ?: "desconocida"
+                    }",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Button(
+                    onClick = {
+                        authVm.activarVip()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Comprar membresía")
+                }
             }
         }
     }
