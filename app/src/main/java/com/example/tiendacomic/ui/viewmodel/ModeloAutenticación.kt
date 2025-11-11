@@ -46,9 +46,9 @@ data class PerfilUiState(
     val rut: String = "",
     val correo: String = "",
     val contrasena: String = "",
-    val compras: List<String> = emptyList(),
-    val esVip: Boolean = false,         // NUEVO: Flag VIP
-    val vipExpiracion: Long? = null     // NUEVO: Timestamp de expiración de membresía
+    val compras: Map<String, Int> = emptyMap(), // 🔹 Map para contar repeticiones
+    val esVip: Boolean = false,
+    val vipExpiracion: Long? = null
 )
 
 // ------------------- VIEWMODEL -------------------
@@ -69,13 +69,12 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     val perfilUiState: StateFlow<PerfilUiState> = _perfilUiState
 
     init {
-        // Usuario de ejemplo inicial
         _perfilUiState.value = PerfilUiState(
             nombre = "Bruce Espinoza",
             rut = "20.123.456-7",
             correo = "bruce@gmail.com",
             contrasena = "Aa!12345",
-            compras = emptyList(),
+            compras = emptyMap(),
             esVip = false,
             vipExpiracion = null
         )
@@ -210,8 +209,8 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
     // ------------------- COMPRAS -------------------
     fun agregarCompra(tituloComic: String) {
         _perfilUiState.update { estado ->
-            if (estado.compras.contains(tituloComic)) estado
-            else estado.copy(compras = estado.compras + tituloComic)
+            val cantidadActual = estado.compras[tituloComic] ?: 0
+            estado.copy(compras = estado.compras + (tituloComic to (cantidadActual + 1)))
         }
     }
 
@@ -224,7 +223,6 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             it.copy(nombre = nombreNuevo.trim(), correo = correoNuevo.trim())
         }
 
-        // Guardar en BD
         viewModelScope.launch {
             repository.actualizarPerfil(usuarioActual.correo, nombreNuevo.trim(), correoNuevo.trim())
         }

@@ -33,14 +33,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.FileProvider
 
-//  Función para crear un archivo temporal para la foto
 private fun createTempImageFile(context: android.content.Context): File {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val storageDir = File(context.cacheDir, "images").apply { mkdirs() }
     return File.createTempFile("IMG_${timeStamp}_", ".jpg", storageDir)
 }
 
-//  Obtener URI segura con FileProvider
 private fun getImageUriForFile(context: android.content.Context, file: File): Uri {
     val authority = "${context.packageName}.fileprovider"
     return FileProvider.getUriForFile(context, authority, file)
@@ -58,12 +56,10 @@ fun PerfilScreen(
     var photoUriString by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Estados locales para edición
     var nombre by rememberSaveable { mutableStateOf(state.nombre) }
     var correo by rememberSaveable { mutableStateOf(state.correo) }
     var mostrandoDialogoContrasena by remember { mutableStateOf(false) }
 
-    // Permiso de cámara
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -72,7 +68,6 @@ fun PerfilScreen(
         }
     }
 
-    // 🔹 Launcher para tomar foto
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -85,7 +80,6 @@ fun PerfilScreen(
         }
     }
 
-    //  Launcher para galería
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -113,9 +107,6 @@ fun PerfilScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // ----------------------------------------------------------
-            // INFORMACIÓN DEL USUARIO
-            // ----------------------------------------------------------
             Text("Perfil de Usuario", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(24.dp))
 
@@ -141,36 +132,25 @@ fun PerfilScreen(
                     Toast.makeText(context, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Guardar cambios")
-            }
+            ) { Text("Guardar cambios") }
 
             Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = { mostrandoDialogoContrasena = true },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cambiar contraseña")
-            }
+            ) { Text("Cambiar contraseña") }
 
             Spacer(Modifier.height(24.dp))
 
-            // ----------------------------------------------------------
-            // FOTO DE PERFIL
-            // ----------------------------------------------------------
             Text("Foto de Perfil", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
 
             if (photoUriString != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(Uri.parse(photoUriString))
-                        .build(),
+                    model = ImageRequest.Builder(context).data(Uri.parse(photoUriString)).build(),
                     contentDescription = "Foto de perfil",
-                    modifier = Modifier
-                        .size(160.dp)
-                        .align(Alignment.CenterHorizontally)
+                    modifier = Modifier.size(160.dp).align(Alignment.CenterHorizontally)
                 )
                 Spacer(Modifier.height(12.dp))
             } else {
@@ -178,9 +158,6 @@ fun PerfilScreen(
                 Spacer(Modifier.height(12.dp))
             }
 
-            // ----------------------------------------------------------
-            // BOTONES: CÁMARA Y GALERÍA
-            // ----------------------------------------------------------
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
                 Button(onClick = {
@@ -194,22 +171,14 @@ fun PerfilScreen(
                         Toast.makeText(context, "Error al abrir la cámara: ${e.message}", Toast.LENGTH_LONG).show()
                         e.printStackTrace()
                     }
-                }) {
-                    Text("Tomar foto")
-                }
+                }) { Text("Tomar foto") }
 
-                Button(onClick = {
-                    pickImageLauncher.launch("image/*")
-                }) {
-                    Text("Galería")
-                }
+                Button(onClick = { pickImageLauncher.launch("image/*") }) { Text("Galería") }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // ----------------------------------------------------------
-            // COMPRAS REALIZADAS
-            // ----------------------------------------------------------
+            // -------------------- COMPRAS --------------------
             Text("Compras realizadas", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 
@@ -217,124 +186,94 @@ fun PerfilScreen(
                 Text("Aún no tienes compras", style = MaterialTheme.typography.bodyMedium)
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 200.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    items(state.compras) { titulo ->
+                    items(state.compras.toList()) { (titulo, cantidad) ->
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(titulo, style = MaterialTheme.typography.bodyLarge)
+                                if (cantidad > 1) {
+                                    Text("x$cantidad", style = MaterialTheme.typography.bodyMedium)
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // ----------------------------------------------------------
-            // DIÁLOGO DE CAMBIO DE CONTRASEÑA
-            // ----------------------------------------------------------
+            // -------------------- DIÁLOGO CONTRASEÑA --------------------
             if (mostrandoDialogoContrasena) {
                 Dialog(onDismissRequest = { mostrandoDialogoContrasena = false }) {
-                    Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        tonalElevation = 8.dp
-                    ) {
+                    Surface(shape = MaterialTheme.shapes.medium, tonalElevation = 8.dp) {
                         var actual by remember { mutableStateOf("") }
                         var nueva by remember { mutableStateOf("") }
                         var confirmar by remember { mutableStateOf("") }
-
-                        // Estados para mostrar/ocultar contraseñas
                         var mostrarActual by remember { mutableStateOf(false) }
                         var mostrarNueva by remember { mutableStateOf(false) }
                         var mostrarConfirmar by remember { mutableStateOf(false) }
 
-                        Column(
-                            modifier = Modifier.padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Cambiar Contraseña", style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(12.dp))
 
-                            // Contraseña actual
                             OutlinedTextField(
                                 value = actual,
                                 onValueChange = { actual = it },
                                 label = { Text("Contraseña actual") },
-                                singleLine = true,
                                 visualTransformation = if (mostrarActual) VisualTransformation.None else PasswordVisualTransformation(),
                                 trailingIcon = {
                                     IconButton(onClick = { mostrarActual = !mostrarActual }) {
-                                        Icon(
-                                            imageVector = if (mostrarActual) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                            contentDescription = if (mostrarActual) "Ocultar contraseña" else "Mostrar contraseña"
-                                        )
+                                        Icon(if (mostrarActual) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
                                     }
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                                }
                             )
 
-                            // Nueva contraseña
+                            Spacer(Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = nueva,
                                 onValueChange = { nueva = it },
                                 label = { Text("Nueva contraseña") },
-                                singleLine = true,
                                 visualTransformation = if (mostrarNueva) VisualTransformation.None else PasswordVisualTransformation(),
                                 trailingIcon = {
                                     IconButton(onClick = { mostrarNueva = !mostrarNueva }) {
-                                        Icon(
-                                            imageVector = if (mostrarNueva) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                            contentDescription = if (mostrarNueva) "Ocultar contraseña" else "Mostrar contraseña"
-                                        )
+                                        Icon(if (mostrarNueva) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
                                     }
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                                }
                             )
 
-                            // Confirmar nueva contraseña
+                            Spacer(Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = confirmar,
                                 onValueChange = { confirmar = it },
-                                label = { Text("Confirmar nueva contraseña") },
-                                singleLine = true,
+                                label = { Text("Confirmar nueva") },
                                 visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
                                 trailingIcon = {
                                     IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
-                                        Icon(
-                                            imageVector = if (mostrarConfirmar) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                            contentDescription = if (mostrarConfirmar) "Ocultar contraseña" else "Mostrar contraseña"
-                                        )
+                                        Icon(if (mostrarConfirmar) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
                                     }
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                                }
                             )
 
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = {
+                                val resultado = vm.cambiarContrasena(actual, nueva, confirmar)
+                                Toast.makeText(context, resultado, Toast.LENGTH_LONG).show()
+                                if (resultado.startsWith("✅")) mostrandoDialogoContrasena = false
+                            }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Actualizar")
+                            }
+
                             Spacer(Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = {
-                                    val result = vm.cambiarContrasena(actual, nueva, confirmar)
-                                    Toast.makeText(context, result, Toast.LENGTH_LONG).show()
-                                    if (result == "✅ Contraseña actualizada correctamente") {
-                                        mostrandoDialogoContrasena = false
-                                    }
-                                }) {
-                                    Text("Aceptar")
-                                }
-                                OutlinedButton(onClick = { mostrandoDialogoContrasena = false }) {
-                                    Text("Cancelar")
-                                }
+                            Button(onClick = { mostrandoDialogoContrasena = false }, modifier = Modifier.fillMaxWidth()) {
+                                Text("Cancelar")
                             }
                         }
                     }
