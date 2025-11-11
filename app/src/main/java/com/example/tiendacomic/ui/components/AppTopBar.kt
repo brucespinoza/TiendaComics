@@ -61,14 +61,8 @@ fun AppTopBar(
             IconButton(onClick = onCatalogo) { // Ir a Catalogo
                 Icon(Icons.Filled.Home, contentDescription = "Catalogo") // Ícono Home
             }
-            IconButton(onClick = onLogin) { // Ir a Login
-                Icon(Icons.Filled.AccountCircle, contentDescription = "Login") // Ícono Login
-            }
-            IconButton(onClick = onRegistro) { // Ir a Registro
-                Icon(Icons.Filled.Person, contentDescription = "Registro") // Ícono Registro
-            }
             IconButton(onClick = onPerfil) { // Ir a Registro
-                Icon(Icons.Filled.Accessibility, contentDescription = "Perfil") // Ícono Registro
+                Icon(Icons.Filled.Person, contentDescription = "Perfil") // Ícono Registro
             }
             IconButton(onClick = { showMenu = true }) { // Abre menú overflow
                 Icon(Icons.Filled.MoreVert, contentDescription = "Más") // Ícono 3 puntitos
@@ -80,14 +74,6 @@ fun AppTopBar(
                 DropdownMenuItem( // Opción Catalogo
                     text = { Text("Catalogo") }, // Texto opción
                     onClick = { showMenu = false; onCatalogo() } // Navega y cierra
-                )
-                DropdownMenuItem( // Opción Login
-                    text = { Text("Login") },
-                    onClick = { showMenu = false; onLogin() }
-                )
-                DropdownMenuItem( // Opción Registro
-                    text = { Text("Registro") },
-                    onClick = { showMenu = false; onRegistro() }
                 )
                 DropdownMenuItem( // Opción Perfil
                     text = { Text("Perfil") },

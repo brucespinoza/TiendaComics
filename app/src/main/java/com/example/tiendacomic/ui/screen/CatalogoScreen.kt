@@ -122,7 +122,7 @@ fun CatalogoScreen(
 
             // 🔹 Mostrar si el usuario es VIP o normal
             Text(
-                text = if (esVip) "🌟 Usuario VIP (50% OFF aplicado)" else "👤 Usuario normal",
+                text = if (esVip) "🌟 Usuario VIP (50% aplicado)" else "👤 Usuario normal",
                 color = if (esVip) Color(0xFF1976D2) else Color.Gray,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
