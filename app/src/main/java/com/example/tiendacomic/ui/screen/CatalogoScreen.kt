@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -29,9 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.tiendacomic.R
 import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.navigation.Route
-import com.example.tiendacomic.ui.components.AppTopBar
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import kotlinx.coroutines.launch
@@ -47,13 +48,13 @@ fun CatalogoScreen(
 ) {
     val context = LocalContext.current
     val comicsBD by vm.comics.collectAsStateWithLifecycle()
-    val esVip by vm.esVip.collectAsStateWithLifecycle() //  actualiza la UI automáticamente
+    val esVip by vm.esVip.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var textoBusqueda by remember { mutableStateOf("") }
 
-    // --- Lista base de cómics ---
+    // Lista base
     val listaBase = listOf(
         ComicEntity(1, "Membresía Premium", 49990, "vip", "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
         ComicEntity(2, "Batman: Año Uno", 20000, "batman", "Los primeros días de Bruce Wayne como vigilante."),
@@ -67,27 +68,19 @@ fun CatalogoScreen(
         ComicEntity(10, "Spider-Man #1", 16000, "spiderman", "Peter Parker enfrenta su mayor desafío.")
     )
 
-    // --- Combinar base + nuevos cómics desde la BD ---
     val comicsCombinados = remember(comicsBD) {
         val existentes = listaBase.map { it.titulo }
         val nuevos = comicsBD.filter { it.titulo !in existentes }
         listaBase + nuevos
     }
 
-    // --- Filtro de búsqueda + ocultar membresía si ya es VIP ---
     val comicsFiltrados = comicsCombinados
-        .filter {
-            it.titulo.contains(textoBusqueda, ignoreCase = true)
-        }
+        .filter { it.titulo.contains(textoBusqueda, ignoreCase = true) }
         .filter { comic ->
-            // 🔹 Si es VIP, ocultar la membresía
             if (esVip && (comic.titulo.contains("Membresía", true) || comic.titulo.contains("Premium", true))) {
                 false
-            } else {
-                true
-            }
+            } else true
         }
-
 
     val formatoCLP = remember {
         NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
@@ -97,11 +90,9 @@ fun CatalogoScreen(
 
     Scaffold(
         topBar = {
-            AppTopBar(
+            CatalogTopBar(
                 onCatalogo = { navController.navigate(Route.Catalogo.path) },
-                onPerfil = { navController.navigate(Route.Perfil.path) },
-                onLogin = { navController.navigate(Route.Login.path) },
-                onRegistro = { navController.navigate(Route.Registro.path) }
+                onPerfil = { navController.navigate(Route.Perfil.path) }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -109,7 +100,7 @@ fun CatalogoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(Color(0xFFE3F2FD)) // Fondo celeste suave
                 .padding(innerPadding)
                 .padding(8.dp)
         ) {
@@ -117,18 +108,17 @@ fun CatalogoScreen(
                 text = "Catálogo de Cómics",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                color = Color(0xFF1565C0),
                 modifier = Modifier.padding(8.dp)
             )
 
-            // 🔹 Mostrar si el usuario es VIP o normal
             Text(
                 text = if (esVip) "🌟 Usuario VIP (50% aplicado)" else "👤 Usuario normal",
-                color = if (esVip) Color(0xFF1976D2) else Color.Gray,
-                fontWeight = FontWeight.Bold,
+                color = if (esVip) Color(0xFF1565C0) else Color.Gray,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
             )
 
-            // Campo de búsqueda
             OutlinedTextField(
                 value = textoBusqueda,
                 onValueChange = { textoBusqueda = it },
@@ -138,12 +128,15 @@ fun CatalogoScreen(
                 label = { Text("Buscar cómic...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF64B5F6),
+                    focusedLabelColor = Color(0xFF1976D2)
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- GRID DE CÓMICS ---
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
@@ -157,23 +150,16 @@ fun CatalogoScreen(
                         esVip = esVip,
                         formatoCLP = formatoCLP,
                         onComprar = {
-                            //  Activa VIP si es la membresía
-                            if (comic.titulo.contains("Membresía", true) ||
-                                comic.titulo.contains("Premium", true) ||
-                                comic.titulo.contains("VIP", true)
-                            ) {
+                            if (comic.titulo.contains("Membresía", true) || comic.titulo.contains("Premium", true)) {
                                 vm.activarVip()
-                                println("🔥 VIP ACTIVADO") // log de depuración
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("🎉 Te convertiste en usuario VIP. ¡Disfruta tus descuentos!")
+                                    snackbarHostState.showSnackbar("🎉 ¡Ahora eres usuario VIP!")
                                 }
                             } else {
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Compra realizada con éxito")
                                 }
                             }
-
-                            // Registrar la compra
                             authVm.agregarCompra(comic.titulo)
                         }
                     )
@@ -183,7 +169,29 @@ fun CatalogoScreen(
     }
 }
 
-// ---------- TARJETA DE CADA CÓMIC ----------
+// ---------- TOP BAR SUAVE ----------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CatalogTopBar(onCatalogo: () -> Unit, onPerfil: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                "Tienda Comic",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF64B5F6) // Azul suave que no cansa
+        ),
+        actions = {
+            TextButton(onClick = onCatalogo) { Text("Catálogo", color = Color.White) }
+            TextButton(onClick = onPerfil) { Text("Perfil", color = Color.White) }
+        }
+    )
+}
+
+// ---------- TARJETA DE CÓMIC ----------
 @Composable
 fun ComicCard(
     comic: ComicEntity,
@@ -203,7 +211,6 @@ fun ComicCard(
         context.resources.getIdentifier(comic.imagen, "drawable", context.packageName)
     }
 
-    // 🔹 Aplica descuento VIP (solo cómics normales)
     val precioOriginal = comic.precio
     val precioDescuento =
         if (esVip && !comic.titulo.contains("VIP", true) && !comic.titulo.contains("Membresía", true))
@@ -215,6 +222,7 @@ fun ComicCard(
             .fillMaxWidth()
             .graphicsLayer(scaleX = escala, scaleY = escala),
         shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -236,9 +244,13 @@ fun ComicCard(
             }
 
             Spacer(Modifier.height(8.dp))
-            Text(text = comic.titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = comic.titulo,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1565C0)
+            )
 
-            // 🔹 Muestra precio normal o con descuento VIP
             if (esVip && !comic.titulo.contains("VIP", true) && !comic.titulo.contains("Membresía", true)) {
                 Text(
                     text = formatoCLP.format(precioOriginal),
@@ -256,20 +268,35 @@ fun ComicCard(
             } else {
                 Text(
                     text = formatoCLP.format(precioOriginal),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color(0xFF1976D2),
                     fontWeight = FontWeight.Medium
                 )
             }
 
             Spacer(Modifier.height(8.dp))
 
-            Button(onClick = { mostrarDialogo = true }, modifier = Modifier.fillMaxWidth()) {
-                Text("Ver más")
+            Button(
+                onClick = { mostrarDialogo = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                contentPadding = PaddingValues()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF64B5F6), Color(0xFF1976D2))
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(vertical = 8.dp, horizontal = 12.dp)
+                ) {
+                    Text("Ver más", color = Color.White)
+                }
             }
         }
     }
 
-    // ---------- DIÁLOGO DETALLES ----------
     if (mostrarDialogo) {
         ComicDialog(
             comic = comic,
@@ -284,7 +311,7 @@ fun ComicCard(
     }
 }
 
-// ---------- DIÁLOGO DE INFORMACIÓN ----------
+// ---------- DIÁLOGO DETALLES ----------
 @Composable
 fun ComicDialog(
     comic: ComicEntity,
@@ -306,7 +333,7 @@ fun ComicDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(comic.titulo, fontWeight = FontWeight.Bold) },
+        title = { Text(comic.titulo, fontWeight = FontWeight.Bold, color = Color(0xFF1565C0)) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (imageRes != 0) {
@@ -324,7 +351,6 @@ fun ComicDialog(
                 Text(comic.descripcion)
                 Spacer(Modifier.height(8.dp))
 
-                // 🔹 Muestra precios con descuento si es VIP
                 if (esVip && !comic.titulo.contains("VIP", true) && !comic.titulo.contains("Membresía", true)) {
                     Text(
                         text = formatoCLP.format(precioOriginal),
@@ -346,14 +372,29 @@ fun ComicDialog(
         },
         confirmButton = {
             Column {
-                Button(onClick = onComprar, modifier = Modifier.fillMaxWidth()) {
-                    Text("Finalizar compra")
+                Button(
+                    onClick = onComprar,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    contentPadding = PaddingValues()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF64B5F6), Color(0xFF1976D2))
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(vertical = 8.dp, horizontal = 12.dp)
+                    ) {
+                        Text("Finalizar compra", color = Color.White)
+                    }
                 }
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text("Cerrar")
+                    Text("Cerrar", color = Color(0xFF1976D2))
                 }
             }
         }
     )
 }
-
