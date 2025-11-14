@@ -176,7 +176,7 @@ fun CatalogTopBar(onCatalogo: () -> Unit, onPerfil: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                "Tienda Comic",
+                "Tienda de Comic",
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )

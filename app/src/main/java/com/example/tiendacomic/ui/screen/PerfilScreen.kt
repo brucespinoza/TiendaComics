@@ -55,7 +55,7 @@ fun TextTopBar(
     TopAppBar(
         title = {
             Text(
-                text = "Tienda Comic",
+                text = "Tienda de Comic",
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge
             )
