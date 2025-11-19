@@ -1,5 +1,8 @@
 package com.example.tiendacomic.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.AccountCircle
@@ -21,7 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable // Composable reutilizable: barra superior
@@ -30,7 +37,8 @@ fun AppTopBar(
     onCatalogo: () -> Unit,       // Navega a Home
     onLogin: () -> Unit,      // Navega a Login
     onRegistro: () -> Unit,    // Navega a Registro
-    onPerfil: () ->  Unit
+    onPerfil: () ->  Unit,
+    onLogout: () -> Unit = {} // <-- agregado: parámetro opcional para cerrar sesión
 ) {
 
     //lo que hace es crear una variable de estado recordada que le dice a la interfaz
@@ -64,6 +72,19 @@ fun AppTopBar(
             IconButton(onClick = onPerfil) { // Ir a Registro
                 Icon(Icons.Filled.Person, contentDescription = "Perfil") // Ícono Registro
             }
+
+            // ======== NUEVO: Botón Cerrar sesión (texto en dos líneas) ========
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable { onLogout() }
+            ) {
+                Text(text = "Cerrar", fontSize = 12.sp)
+                Text(text = "Sesión", fontSize = 12.sp)
+            }
+            // ================================================================
+
             IconButton(onClick = { showMenu = true }) { // Abre menú overflow
                 Icon(Icons.Filled.MoreVert, contentDescription = "Más") // Ícono 3 puntitos
             }
@@ -78,6 +99,10 @@ fun AppTopBar(
                 DropdownMenuItem( // Opción Perfil
                     text = { Text("Perfil") },
                     onClick = { showMenu = false; onPerfil() }
+                )
+                DropdownMenuItem( // Opción Cerrar sesión
+                    text = { Text("Cerrar sesión") },
+                    onClick = { showMenu = false; onLogout() }
                 )
             }
         }

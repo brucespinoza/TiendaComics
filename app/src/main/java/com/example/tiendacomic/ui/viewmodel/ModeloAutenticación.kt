@@ -278,4 +278,13 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
             )
         }
     }
+
+    // ------------------- NUEVO: CERRAR SESIÓN -------------------
+    // Esta función limpia el estado interno del ViewModel (login/registro/perfil/rol)
+    fun cerrarSesion() {
+        _login.update { LoginUiState() }
+        _registro.update { RegistroUiState() }
+        _perfilUiState.update { PerfilUiState() }
+        _ultimoRol = null
+    }
 }

@@ -35,6 +35,7 @@ import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.navigation.Route
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
+import com.example.tiendacomic.data.storage.UserPreferences
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
@@ -56,14 +57,14 @@ fun CatalogoScreen(
 
     // Lista base
     val listaBase = listOf(
-        ComicEntity(1, "Membresía Premium", 49990, "vip", "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
+        ComicEntity(1, "Membresía Premium", 50000, "vip", "Acceso ilimitado a todos los cómics digitales, descuentos exclusivos y más."),
         ComicEntity(2, "Batman: Año Uno", 20000, "batman", "Los primeros días de Bruce Wayne como vigilante."),
         ComicEntity(3, "Avengers: Endgame", 20000, "avenger", "Los Vengadores intentan revertir el chasquido de Thanos."),
         ComicEntity(4, "X-Men: Dark Phoenix", 15000, "men", "Jean Grey pierde el control de sus poderes."),
         ComicEntity(5, "Iron Man: Extremis", 15000, "ironman", "Tony Stark enfrenta un virus nanotecnológico."),
         ComicEntity(6, "4 Fantásticos #1", 25000, "fantasticos", "Los héroes más grandes de Marvel."),
         ComicEntity(7, "Narnia", 17000, "narnia", "Un mundo mágico lleno de criaturas fantásticas."),
-        ComicEntity(8, "Alicia en el país de las maravillas #1", 18990, "aliciaa", "Alicia cae en un mundo surrealista."),
+        ComicEntity(8, "Alicia en el país de las maravillas #1", 19000, "aliciaa", "Alicia cae en un mundo surrealista."),
         ComicEntity(9, "Power Ranger #1", 18000, "ranger", "Un grupo de jóvenes héroes defiende la Tierra."),
         ComicEntity(10, "Spider-Man #1", 16000, "spiderman", "Peter Parker enfrenta su mayor desafío.")
     )
@@ -88,11 +89,28 @@ fun CatalogoScreen(
         }
     }
 
+    // ====== NUEVO: instancia de UserPreferences para marcar loggedIn = false al cerrar sesión ======
+    val userPrefs = remember { UserPreferences(context) }
+    // =============================================================================================
+
     Scaffold(
         topBar = {
             CatalogTopBar(
                 onCatalogo = { navController.navigate(Route.Catalogo.path) },
-                onPerfil = { navController.navigate(Route.Perfil.path) }
+                onPerfil = { navController.navigate(Route.Perfil.path) },
+                onLogout = {
+                    // Lógica de cierre de sesión: ejecutar la llamada suspend dentro de una corrutina
+                    scope.launch {
+                        authVm.cerrarSesion()
+                        userPrefs.setLoggedIn(false) // <-- llamada suspend, ahora segura dentro de scope.launch
+
+                        // Navegar a Login y limpiar backstack
+                        navController.navigate(Route.Login.path) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -172,7 +190,7 @@ fun CatalogoScreen(
 // ---------- TOP BAR SUAVE ----------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogTopBar(onCatalogo: () -> Unit, onPerfil: () -> Unit) {
+fun CatalogTopBar(onCatalogo: () -> Unit, onPerfil: () -> Unit, onLogout: () -> Unit = {}) {
     TopAppBar(
         title = {
             Text(
@@ -187,6 +205,18 @@ fun CatalogTopBar(onCatalogo: () -> Unit, onPerfil: () -> Unit) {
         actions = {
             TextButton(onClick = onCatalogo) { Text("Catálogo", color = Color.White) }
             TextButton(onClick = onPerfil) { Text("Perfil", color = Color.White) }
+
+            // ======== Botón Cerrar sesión EN DOS LÍNEAS ========
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable { onLogout() }
+            ) {
+                Text(text = "Cerrar", color = Color.White, fontSize = 12.sp)
+                Text(text = "Sesión", color = Color.White, fontSize = 12.sp)
+            }
+            // ===================================================
         }
     )
 }
