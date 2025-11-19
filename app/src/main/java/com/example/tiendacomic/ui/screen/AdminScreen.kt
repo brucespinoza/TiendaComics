@@ -1,23 +1,29 @@
 package com.example.tiendacomic.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-//import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import java.text.NumberFormat
@@ -27,35 +33,30 @@ import java.util.Locale
 @Composable
 fun AdminScreen(vm: CatalogoViewModel) {
 
-    //  Carga inicial de cómics
     LaunchedEffect(Unit) { vm.cargarComics() }
 
     val context = LocalContext.current
     val lista by vm.comics.collectAsState()
 
-    // ---------- VARIABLES DEL FORMULARIO ----------
     var titulo by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
 
-    // ---------- ERRORES DE VALIDACIÓN ----------
     var tituloError by remember { mutableStateOf<String?>(null) }
     var precioError by remember { mutableStateOf<String?>(null) }
     var descripcionError by remember { mutableStateOf<String?>(null) }
 
-    // ---------- IMÁGENES DISPONIBLES ----------
     val imagenesDisponibles = listOf(
         "batman", "avenger", "spiderman", "ironman", "narnia",
         "ranger", "aliciaa", "fantasticos", "men",
     )
+
     var imagenSeleccionada by remember { mutableStateOf(imagenesDisponibles.first()) }
     var menuAbierto by remember { mutableStateOf(false) }
 
-    // ---------- MODO EDICIÓN ----------
     var editandoComic by remember { mutableStateOf<ComicEntity?>(null) }
 
-    // ---------- FUNCIÓN PARA LIMPIAR FORMULARIO ----------
-    fun limpiarFormulario() {
+    fun limpiar() {
         titulo = ""
         precio = ""
         descripcion = ""
@@ -66,259 +67,302 @@ fun AdminScreen(vm: CatalogoViewModel) {
         editandoComic = null
     }
 
-    // ---------- VALIDACIÓN DE CAMPOS ----------
     fun validar(): Boolean {
-        // Titulo
-        tituloError = when {
-            titulo.isBlank() -> "Ingresa un título"
-            !titulo.any { it.isLetter() } -> "Debe contener letras"
-            else -> null
-        }
-
-        // Precio: número, mayor o igual a 1000
+        tituloError = if (titulo.isBlank()) "Ingresa un título" else null
         val p = precio.toIntOrNull()
         precioError = when {
             precio.isBlank() -> "Ingresa un precio"
             p == null -> "Debe ser numérico"
-            p < 1000 -> "Debe ser al menos $1000"
+            p < 1000 -> "Desde $1000"
             else -> null
         }
-
-        //  Descripcion obligatoria, sin solo números
-        descripcionError = when {
-            descripcion.isBlank() -> "Ingresa una descripción"
-            descripcion.all { it.isDigit() } -> "No puede ser solo números"
-            else -> null
-        }
+        descripcionError = if (descripcion.isBlank()) "Ingresa una descripción" else null
 
         return tituloError == null && precioError == null && descripcionError == null
     }
 
-    // ---------- FORMATO DE MONEDA ----------
     val formatoCLP = remember {
-        NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply {
-            maximumFractionDigits = 0
-        }
+        NumberFormat.getCurrencyInstance(Locale("es","CL")).apply { maximumFractionDigits = 0 }
     }
 
-    // ---------- SCROLL PRINCIPAL ----------
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .background(Color(0xFFE8EFF7))
     ) {
 
-        // ---------- FORMULARIO ----------
-        item {
-            Text("ADMIN — Gestión de Cómics", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(8.dp))
-
-            // Campo TÍTULO
-            OutlinedTextField(
-                value = titulo,
-                onValueChange = {
-                    titulo = it
-                    tituloError = null
-                },
-                label = { Text("Título") },
-                isError = tituloError != null,
-                supportingText = { if (tituloError != null) Text(tituloError!!) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
-
-            // Campo PRECIO (solo números)
-            OutlinedTextField(
-                value = precio,
-                onValueChange = {
-                    val soloDigitos = it.filter { ch -> ch.isDigit() }.take(7)
-                    precio = soloDigitos
-                    precioError = null
-                },
-                label = { Text("Precio (número entero)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = precioError != null,
-                supportingText = { if (precioError != null) Text(precioError!!) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(Modifier.height(8.dp))
-
-            // Campo DESCRIPCIÓN
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = {
-                    descripcion = it
-                    descripcionError = null
-                },
-                label = { Text("Descripción") },
-                isError = descripcionError != null,
-                supportingText = { if (descripcionError != null) Text(descripcionError!!) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
-
-            // Selector de IMAGEN
-            ExposedDropdownMenuBox(
-                expanded = menuAbierto,
-                onExpandedChange = { menuAbierto = !menuAbierto }
-            ) {
-                OutlinedTextField(
-                    value = imagenSeleccionada,
-                    onValueChange = {},
-                    label = { Text("Imagen (drawable)") },
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuAbierto) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+        // --------------------------------------
+        // TÍTULO TIPO EL CATÁLOGO
+        // --------------------------------------
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF4AA3DF))
+                .padding(20.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Panel de Administración",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
-                ExposedDropdownMenu(
-                    expanded = menuAbierto,
-                    onDismissRequest = { menuAbierto = false }
-                ) {
-                    imagenesDisponibles.forEach { nombre ->
-                        DropdownMenuItem(
-                            text = { Text(nombre) },
-                            onClick = {
-                                imagenSeleccionada = nombre
-                                menuAbierto = false
-                            }
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text("Usuario Administrador", color = Color.White)
                 }
             }
+        }
 
-            Spacer(Modifier.height(8.dp))
+        LazyColumn(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
 
-            // Botón GUARDAR / CREAR
-            Button(
-                onClick = {
-                    if (!validar()) return@Button
-                    val precioNum = precio.toInt()
-
-                    if (editandoComic == null) {
-                        vm.insertarComic(
-                            ComicEntity(
-                                titulo = titulo.trim(),
-                                precio = precioNum,
-                                descripcion = descripcion.trim(),
-                                imagen = imagenSeleccionada
-                            )
-                        )
-                    } else {
-                        vm.actualizarComic(
-                            editandoComic!!.copy(
-                                titulo = titulo.trim(),
-                                precio = precioNum,
-                                descripcion = descripcion.trim(),
-                                imagen = imagenSeleccionada
-                            )
-                        )
-                    }
-                    limpiarFormulario()
-                },
-                enabled = titulo.isNotBlank() && precio.isNotBlank() && descripcion.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (editandoComic == null) "Crear cómic" else "Guardar cambios")
-            }
-
-            // Botón CANCELAR (solo si estás editando)
-            if (editandoComic != null) {
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { limpiarFormulario() },
+            // --------------------------------------
+            // FORMULARIO CON DISEÑO ESTILO CATÁLOGO
+            // --------------------------------------
+            item {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = cardElevation(6.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Cancelar edición") }
-            }
-
-            Spacer(Modifier.height(16.dp))
-            Text("Cómics existentes", style = MaterialTheme.typography.titleMedium)
-        }
-
-        // ---------- LISTA DE CÓMICS ----------
-        items(lista) { comic ->
-            val imageRes = remember(comic.imagen) {
-                context.resources.getIdentifier(comic.imagen, "drawable", context.packageName)
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = cardElevation(defaultElevation = 3.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // 🖼️ IMAGEN + DETALLES
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (imageRes != 0) {
-                            Image(
-                                painter = painterResource(id = imageRes),
-                                contentDescription = comic.titulo,
+                    Column(modifier = Modifier.padding(16.dp)) {
+
+                        Text(
+                            text = if (editandoComic == null)
+                                "Crear nuevo cómic"
+                            else
+                                "Editar cómic",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Color(0xFF1E88E5)
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = titulo,
+                            onValueChange = { titulo = it; tituloError = null },
+                            label = { Text("Título") },
+                            isError = tituloError != null,
+                            supportingText = { tituloError?.let { Text(it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        Spacer(Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = precio,
+                            onValueChange = {
+                                precio = it.filter { ch -> ch.isDigit() }.take(8)
+                                precioError = null
+                            },
+                            label = { Text("Precio") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = precioError != null,
+                            supportingText = { precioError?.let { Text(it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        Spacer(Modifier.height(10.dp))
+
+                        OutlinedTextField(
+                            value = descripcion,
+                            onValueChange = { descripcion = it; descripcionError = null },
+                            label = { Text("Descripción") },
+                            isError = descripcionError != null,
+                            supportingText = { descripcionError?.let { Text(it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        Spacer(Modifier.height(10.dp))
+
+                        // Dropdown imagen
+                        ExposedDropdownMenuBox(
+                            expanded = menuAbierto,
+                            onExpandedChange = { menuAbierto = !menuAbierto }
+                        ) {
+                            OutlinedTextField(
+                                value = imagenSeleccionada,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Imagen") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuAbierto)
+                                },
                                 modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            Spacer(Modifier.width(12.dp))
+                            ExposedDropdownMenu(
+                                expanded = menuAbierto,
+                                onDismissRequest = { menuAbierto = false }
+                            ) {
+                                imagenesDisponibles.forEach { img ->
+                                    DropdownMenuItem(
+                                        text = { Text(img) },
+                                        onClick = {
+                                            imagenSeleccionada = img
+                                            menuAbierto = false
+                                        }
+                                    )
+                                }
+                            }
                         }
-                        Column {
-                            Text(comic.titulo, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Precio: ${formatoCLP.format(comic.precio)}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            if (comic.descripcion.isNotBlank()) {
-                                Text(comic.descripcion, style = MaterialTheme.typography.bodySmall)
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                if (!validar()) return@Button
+
+                                if (editandoComic == null) {
+                                    vm.insertarComic(
+                                        ComicEntity(
+                                            titulo = titulo.trim(),
+                                            precio = precio.toInt(),
+                                            descripcion = descripcion.trim(),
+                                            imagen = imagenSeleccionada
+                                        )
+                                    )
+                                } else {
+                                    vm.actualizarComic(
+                                        editandoComic!!.copy(
+                                            titulo = titulo.trim(),
+                                            precio = precio.toInt(),
+                                            descripcion = descripcion.trim(),
+                                            imagen = imagenSeleccionada
+                                        )
+                                    )
+                                }
+                                limpiar()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(if (editandoComic == null) "Crear cómic" else "Guardar cambios")
+                        }
+
+                        if (editandoComic != null) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = { limpiar() },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Text("Cancelar edición")
                             }
                         }
                     }
+                }
+            }
 
-                    // 🧩 BOTONES (Editar / Eliminar en columna)
-                    val actionWidth = 140.dp
-                    Column(
-                        modifier = Modifier.width(actionWidth),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.End
+            // --------------------------------------
+            // LISTA DE CÓMICS — ESTILO TARJETAS BONITAS
+            // --------------------------------------
+            items(lista) { comic ->
+
+                val imageRes = context.resources.getIdentifier(
+                    comic.imagen, "drawable", context.packageName
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = cardElevation(6.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(14.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        //  EDITAR
-                        OutlinedButton(
-                            onClick = {
-                                editandoComic = comic
-                                titulo = comic.titulo
-                                precio = comic.precio.toString()
-                                descripcion = comic.descripcion
-                                imagenSeleccionada = comic.imagen
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("Editar", maxLines = 1) }
 
-                        // ELIMINAR
-                        Button(
-                            onClick = { vm.eliminarComic(comic) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            )
-                        ) { Text("Eliminar", maxLines = 1) }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            if (imageRes != 0) {
+                                Image(
+                                    painter = painterResource(id = imageRes),
+                                    contentDescription = comic.titulo,
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            Spacer(Modifier.width(12.dp))
+
+                            Column {
+                                Text(
+                                    comic.titulo,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    formatoCLP.format(comic.precio),
+                                    color = Color(0xFF1E88E5),
+                                    fontSize = 16.sp
+                                )
+                                Text(
+                                    comic.descripcion,
+                                    fontSize = 13.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    editandoComic = comic
+                                    titulo = comic.titulo
+                                    precio = comic.precio.toString()
+                                    descripcion = comic.descripcion
+                                    imagenSeleccionada = comic.imagen
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.width(120.dp)
+                            ) {
+                                Text("Editar")
+                            }
+
+                            Button(
+                                onClick = { vm.eliminarComic(comic) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFD9534F),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier.width(120.dp)
+                            ) {
+                                Text("Eliminar")
+                            }
+                        }
                     }
                 }
             }
+
+            item { Spacer(Modifier.height(80.dp)) }
         }
-
-
-        item { Spacer(Modifier.height(72.dp)) }
     }
 }
-
 
 
 
