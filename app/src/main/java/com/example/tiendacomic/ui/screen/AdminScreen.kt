@@ -48,7 +48,7 @@ fun AdminScreen(vm: CatalogoViewModel) {
 
     val imagenesDisponibles = listOf(
         "batman", "avenger", "spiderman", "ironman", "narnia",
-        "ranger", "aliciaa", "fantasticos", "men",
+        "ranger", "aliciaa", "fantasticos", "men", "comic"
     )
 
     var imagenSeleccionada by remember { mutableStateOf(imagenesDisponibles.first()) }
