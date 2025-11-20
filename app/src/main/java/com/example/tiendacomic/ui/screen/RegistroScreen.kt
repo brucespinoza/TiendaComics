@@ -2,6 +2,7 @@ package com.example.tiendacomic.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -10,29 +11,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 
 
-
-//Conectamos la pantalla al ViewModel
+// =============================
+//   VIEWMODEL CONEXIÓN
+// =============================
 @Composable
 fun RegistroScreenVm(
-
-    onRegistroExitoso: () -> Unit,  // Navegar a Login después de registrar
-    onIrLogin: () -> Unit,           // Botón Ya tengo cuenta
-    vm: ModeloAutenticacion //base de datos
-
+    onRegistroExitoso: () -> Unit,
+    onIrLogin: () -> Unit,
+    vm: ModeloAutenticacion
 ) {
-    //val vm: ModeloAutenticacion = viewModel()
-    val estado by vm.registro.collectAsStateWithLifecycle() //base de datos
+    val estado by vm.registro.collectAsStateWithLifecycle()
 
     if (estado.exito) {
         vm.limpiarResultadoRegistro()
-        onRegistroExitoso() //base de datos
+        onRegistroExitoso()
     }
 
     RegistroScreen(
@@ -64,6 +65,9 @@ fun RegistroScreenVm(
 }
 
 
+// =============================
+//   DISEÑO COMPLETAMENTE NUEVO
+// =============================
 @Composable
 private fun RegistroScreen(
     nombre: String,
@@ -91,191 +95,232 @@ private fun RegistroScreen(
     onRegistrar: () -> Unit,
     onIrLogin: () -> Unit
 ) {
-    val fondo = MaterialTheme.colorScheme.background //fondo
     var mostrarPass by remember { mutableStateOf(false) }
     var mostrarConfirmar by remember { mutableStateOf(false) }
 
-
-
-    Box(
+    // FONDO GENERAL CELESTE
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(fondo)
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .background(Color(0xFFE8EFF7))
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text("Registro", style = MaterialTheme.typography.headlineSmall)
-            Spacer(Modifier.height(12.dp))
 
-            //formulario del nombre de usuario
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = onNombreChange,
-                label = { Text("Nombre completo") },
-                singleLine = true,
-                isError = nombreError != null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-            )
-            nombreError?.let {
+        // =============================
+        //  BARRA SUPERIOR AZUL
+        // =============================
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF4AA3DF))
+                .padding(20.dp)
+        ) {
+            Column {
                 Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    softWrap = true
+                    text = "Crear Cuenta",
+                    color = Color.White,
+                    fontSize = 26.sp,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "Regístrate para continuar",
+                    color = Color.White,
+                    fontSize = 15.sp
                 )
             }
+        }
 
-
-            Spacer(Modifier.height(8.dp))
-
-            //formulario del rut
-            OutlinedTextField(
-                value = rut,
-                onValueChange = onRutChange,
-                label = { Text("RUT") },
-                singleLine = true,
-                isError = rutError != null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-            )
-            rutError?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    softWrap = true
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            //formulario del correo
-            OutlinedTextField(
-                value = correo,
-                onValueChange = onCorreoChange,
-                label = { Text("Correo electrónico") },
-                singleLine = true,
-                isError = correoError != null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth()
-            )
-            correoError?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    softWrap = true
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            //formulario de la contraseña
-            OutlinedTextField(
-                value = contrasena,
-                onValueChange = onContrasenaChange,
-                label = { Text("Contraseña") },
-                singleLine = true,
-                isError = contrasenaError != null,
-                visualTransformation = if (mostrarPass) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { mostrarPass = !mostrarPass }) {
-                        Icon(
-                            imageVector = if (mostrarPass) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (mostrarPass) "Ocultar contraseña" else "Mostrar contraseña"
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            contrasenaError?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    softWrap = true
-                )
-            }
-
-
-            Spacer(Modifier.height(8.dp))
-
-            // formulario de copnfirmar
-            OutlinedTextField(
-                value = confirmar,
-                onValueChange = onConfirmarChange,
-                label = { Text("Confirmar contraseña") },
-                singleLine = true,
-                isError = confirmarError != null,
-                visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
-                        Icon(
-                            imageVector = if (mostrarConfirmar) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (mostrarConfirmar) "Ocultar confirmación" else "Mostrar confirmación"
-
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            confirmarError?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    softWrap = true
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Botton registrar
-            Button(
-                onClick = onRegistrar,
-                enabled = puedeEnviar && !enviando,
-                modifier = Modifier.fillMaxWidth()
+        // =============================
+        //     FORMULARIO EN CARD
+        // =============================
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(6.dp)
             ) {
-                if (enviando) {
-                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Creando cuenta...")
-                } else {
-                    Text("Registrar")
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth()
+                ) {
+
+                    Text(
+                        text = "Registro de usuario",
+                        fontSize = 20.sp,
+                        color = Color(0xFF1E88E5),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(Modifier.height(14.dp))
+
+                    // =============================
+                    //        NOMBRE
+                    // =============================
+                    OutlinedTextField(
+                        value = nombre,
+                        onValueChange = onNombreChange,
+                        label = { Text("Nombre completo") },
+                        singleLine = true,
+                        isError = nombreError != null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                    )
+                    nombreError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // =============================
+                    //        RUT
+                    // =============================
+                    OutlinedTextField(
+                        value = rut,
+                        onValueChange = onRutChange,
+                        label = { Text("RUT") },
+                        singleLine = true,
+                        isError = rutError != null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                    )
+                    rutError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // =============================
+                    //        CORREO
+                    // =============================
+                    OutlinedTextField(
+                        value = correo,
+                        onValueChange = onCorreoChange,
+                        label = { Text("Correo electrónico") },
+                        singleLine = true,
+                        isError = correoError != null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                    )
+                    correoError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // =============================
+                    //        CONTRASEÑA
+                    // =============================
+                    OutlinedTextField(
+                        value = contrasena,
+                        onValueChange = onContrasenaChange,
+                        label = { Text("Contraseña") },
+                        singleLine = true,
+                        isError = contrasenaError != null,
+                        visualTransformation =
+                            if (mostrarPass) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { mostrarPass = !mostrarPass }) {
+                                Icon(
+                                    imageVector =
+                                        if (mostrarPass) Icons.Filled.VisibilityOff
+                                        else Icons.Filled.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                    )
+                    contrasenaError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // =============================
+                    //        CONFIRMAR PASS
+                    // =============================
+                    OutlinedTextField(
+                        value = confirmar,
+                        onValueChange = onConfirmarChange,
+                        label = { Text("Confirmar contraseña") },
+                        singleLine = true,
+                        isError = confirmarError != null,
+                        visualTransformation =
+                            if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
+                                Icon(
+                                    imageVector =
+                                        if (mostrarConfirmar) Icons.Filled.VisibilityOff
+                                        else Icons.Filled.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                    )
+                    confirmarError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(18.dp))
+
+                    // =============================
+                    //       BOTÓN REGISTRAR
+                    // =============================
+                    Button(
+                        onClick = onRegistrar,
+                        enabled = puedeEnviar && !enviando,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        if (enviando) {
+                            CircularProgressIndicator(
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Creando cuenta...")
+                        } else {
+                            Text("Registrar")
+                        }
+                    }
+
+                    mensajeError?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+
+                    Spacer(Modifier.height(14.dp))
+
+                    // =============================
+                    //       BOTÓN LOGIN
+                    // =============================
+                    OutlinedButton(
+                        onClick = onIrLogin,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Ya tengo una cuenta")
+                    }
                 }
-            }
-
-            mensajeError?.let {
-                Spacer(Modifier.height(8.dp))
-                Text(it, color = MaterialTheme.colorScheme.error)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            //boton depara que vallas al login
-            OutlinedButton(onClick = onIrLogin, modifier = Modifier.fillMaxWidth()) {
-                Text("Ya tengo una cuenta")
             }
         }
     }
 }
-
-
