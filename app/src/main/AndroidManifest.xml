@@ -25,7 +25,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.TiendaComic">
+            android:theme="@style/Theme.Splash">   <!-- 🔹 Ahora inicia con el Splash -->
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,4 +48,3 @@
     </application>
 
 </manifest>
-

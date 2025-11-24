@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -22,6 +23,10 @@ import com.example.tiendacomic.ui.viewmodel.CatalogoViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        // ✨ Crear e instalar el Splash antes del super.onCreate
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -57,10 +62,8 @@ fun AppRoot() {
             NavGraph(
                 navController = navController,
                 vm = authViewModel,
-                catalogoVm = catalogoVm // Ahora pasa sin errores
+                catalogoVm = catalogoVm
             )
         }
     }
 }
-
-

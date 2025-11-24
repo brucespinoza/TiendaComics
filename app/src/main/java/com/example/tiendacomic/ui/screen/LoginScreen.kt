@@ -123,7 +123,7 @@ private fun LoginScreen(
 
                 // ---------- TÍTULO ----------
                 Text(
-                    "Bienvenido a TiendaComic",
+                    "Bienvenidos A La Tienda De Comic",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = PrimaryBlue
