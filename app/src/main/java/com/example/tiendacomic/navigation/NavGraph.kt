@@ -40,7 +40,16 @@ fun NavGraph(navController: NavHostController, vm: ModeloAutenticacion, catalogo
             PerfilScreen(navController = navController, vm = vm)
         }
 
-        composable(Route.Admin.path) { AdminScreen(vm = catalogoVm) }
+        composable(Route.Admin.path) { 
+            AdminScreen(
+                vm = catalogoVm,
+                onCerrarSesion = {
+                    navController.navigate(Route.Login.path) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Route.Carrito.path) {
             val comicsDemo = listOf(

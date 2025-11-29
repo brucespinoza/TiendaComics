@@ -8,12 +8,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.tiendacomic.data.local.database.AppDatabase
-import com.example.tiendacomic.data.repositorio.UsuarioRepository
-import com.example.tiendacomic.data.repositorio.ComicRepository
 import com.example.tiendacomic.navigation.NavGraph
 import com.example.tiendacomic.ui.theme.TiendaComicTheme
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
@@ -38,21 +34,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppRoot() {
-    val context = LocalContext.current.applicationContext
-
-    // --- BD E INSTANCIAS DE ROOM ---
-    val db = AppDatabase.getInstance(context)
-
-    // ====== AUTENTICACION ======
-    val userDao = db.usuarioDao()
-    val userRepo = UsuarioRepository(userDao)
+    // ====== AUTENTICACION (ahora usa API REST) ======
     val authViewModel: ModeloAutenticacion = viewModel(
-        factory = ModeloAutenticacionFactory(userRepo)
+        factory = ModeloAutenticacionFactory()
     )
 
-    // ====== CATÁLOGO ======
+    // ====== CATÁLOGO (ahora usa API REST) ======
     val catalogoVm: CatalogoViewModel = viewModel(
-        factory = CatalogoViewModelFactory(context)
+        factory = CatalogoViewModelFactory()
     )
 
     val navController = rememberNavController()

@@ -1,63 +1,97 @@
 package com.example.tiendacomic.data.repositorio
 
-import com.example.tiendacomic.data.local.usuario.UsuarioDao
 import com.example.tiendacomic.data.local.usuario.UsuarioEntity
+import com.example.tiendacomic.data.remote.ApiConfig
+import com.example.tiendacomic.data.remote.dto.*
 
-class UsuarioRepository(
-    private val usuarioDao: UsuarioDao
-) {
+/**
+ * Repositorio de Usuario - Conecta con el microservicio Usuario (puerto 8081)
+ * 
+ * NOTA: Este repositorio ahora usa la API REST en lugar de Room
+ */
+class UsuarioRepository {
+
+    private val api = ApiConfig.usuarioApi
+
+    // Variable para guardar la contraseña temporalmente (la API no la devuelve por seguridad)
+    private var contrasenaActual: String = ""
 
     // ------------------ LOGIN ------------------
     suspend fun login(correo: String, pass: String): Result<UsuarioEntity> {
-        val user = usuarioDao.obtenerPorCorreo(correo)
-        return if (user != null && user.contrasena == pass) {
-            Result.success(user)
-        } else {
-            Result.failure(IllegalArgumentException("Credenciales inválidas"))
+        return try {
+            val response = api.login(LoginRequest(correo, pass))
+            if (response.isSuccessful && response.body() != null) {
+                contrasenaActual = pass // Guardamos la contraseña para uso local
+                val usuario = response.body()!!.toEntity(pass)
+                Result.success(usuario)
+            } else {
+                Result.failure(IllegalArgumentException("Credenciales inválidas"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IllegalArgumentException("Error de conexión: ${e.message}"))
         }
     }
 
     // ------------------ REGISTRO ------------------
     suspend fun registro(nombre: String, rut: String, correo: String, pass: String): Result<Long> {
-        val exists = usuarioDao.obtenerPorCorreo(correo) != null
-        if (exists) {
-            return Result.failure(IllegalArgumentException("Correo en uso"))
+        return try {
+            val request = RegistroRequest(nombre, rut, correo, pass)
+            val response = api.registro(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.id)
+            } else {
+                Result.failure(IllegalArgumentException("Error al registrar: correo o RUT ya en uso"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IllegalArgumentException("Error de conexión: ${e.message}"))
         }
-
-        val id = usuarioDao.insertar(
-            UsuarioEntity(
-                nombre = nombre,
-                rut = rut,
-                correo = correo,
-                contrasena = pass,
-                rol = "usuario" // por defecto
-            )
-        )
-
-        return Result.success(id)
     }
 
     // ------------------ ACTUALIZAR PERFIL ------------------
     suspend fun actualizarPerfil(correo: String, nuevoNombre: String, nuevoCorreo: String): Result<Unit> {
-        val user = usuarioDao.obtenerPorCorreo(correo)
-        return if (user != null) {
-            val actualizado = user.copy(nombre = nuevoNombre, correo = nuevoCorreo)
-            usuarioDao.actualizar(actualizado)
-            Result.success(Unit)
-        } else {
-            Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        return try {
+            // Primero obtenemos el usuario por correo para tener su ID
+            val userResponse = api.obtenerPorCorreo(correo)
+            if (userResponse.isSuccessful && userResponse.body() != null) {
+                val userId = userResponse.body()!!.id
+                val request = ActualizarUsuarioRequest(nombre = nuevoNombre, correo = nuevoCorreo)
+                val response = api.actualizar(userId, request)
+                if (response.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(IllegalArgumentException("Error al actualizar perfil"))
+                }
+            } else {
+                Result.failure(IllegalArgumentException("Usuario no encontrado"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IllegalArgumentException("Error de conexión: ${e.message}"))
         }
     }
 
     // ------------------ CAMBIAR CONTRASEÑA ------------------
     suspend fun actualizarContrasena(correo: String, nueva: String): Result<Unit> {
-        val user = usuarioDao.obtenerPorCorreo(correo)
-        return if (user != null) {
-            val actualizado = user.copy(contrasena = nueva)
-            usuarioDao.actualizar(actualizado)
-            Result.success(Unit)
-        } else {
-            Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        return try {
+            // Primero obtenemos el usuario por correo para tener su ID
+            val userResponse = api.obtenerPorCorreo(correo)
+            if (userResponse.isSuccessful && userResponse.body() != null) {
+                val userId = userResponse.body()!!.id
+                val request = CambiarContrasenaRequest(
+                    contrasenaActual = contrasenaActual,
+                    nuevaContrasena = nueva
+                )
+                val response = api.cambiarContrasena(userId, request)
+                if (response.isSuccessful) {
+                    contrasenaActual = nueva // Actualizamos la contraseña local
+                    Result.success(Unit)
+                } else {
+                    Result.failure(IllegalArgumentException("Error al cambiar contraseña"))
+                }
+            } else {
+                Result.failure(IllegalArgumentException("Usuario no encontrado"))
+            }
+        } catch (e: Exception) {
+            Result.failure(IllegalArgumentException("Error de conexión: ${e.message}"))
         }
     }
 }

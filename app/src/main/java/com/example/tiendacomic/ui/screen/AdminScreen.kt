@@ -31,7 +31,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreen(vm: CatalogoViewModel) {
+fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
 
     LaunchedEffect(Unit) { vm.cargarComics() }
 
@@ -100,23 +100,34 @@ fun AdminScreen(vm: CatalogoViewModel) {
                 .background(Color(0xFF4AA3DF))
                 .padding(20.dp)
         ) {
-            Column {
-                Text(
-                    text = "Panel de Administración",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Panel de Administración",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    Spacer(Modifier.width(6.dp))
-                    Text("Usuario Administrador", color = Color.White)
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Usuario Administrador", color = Color.White)
+                    }
+                }
+                
+                // Botón Cerrar Sesión
+                TextButton(onClick = onCerrarSesion) {
+                    Text("Cerrar Sesión", color = Color.White)
                 }
             }
         }
