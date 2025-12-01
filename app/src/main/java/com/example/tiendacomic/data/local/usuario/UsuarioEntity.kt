@@ -1,9 +1,14 @@
 package com.example.tiendacomic.data.local.usuario
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
 /**
- * Modelo de datos para Usuario (sin SQLite)
+ * Modelo de datos para Usuario
  */
+@Entity(tableName = "users")
 data class UsuarioEntity(
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val nombre: String,
     val rut: String,

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 @Database(
     entities = [UsuarioEntity::class, ComicEntity::class],
     version = 2,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     //exponemos los dao que usaremos para los insert por defecto
