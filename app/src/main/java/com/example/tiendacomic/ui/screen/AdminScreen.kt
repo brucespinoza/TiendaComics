@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -46,9 +45,7 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
     var precioError by remember { mutableStateOf<String?>(null) }
     var descripcionError by remember { mutableStateOf<String?>(null) }
 
-    // Imagen por defecto para nuevos cómics
     val imagenPorDefecto = "comic"
-    
     var imagenSeleccionada by remember { mutableStateOf(imagenPorDefecto) }
 
     var editandoComic by remember { mutableStateOf<ComicEntity?>(null) }
@@ -70,7 +67,7 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
         precioError = when {
             precio.isBlank() -> "Ingresa un precio"
             p == null -> "Debe ser numérico"
-            p < 1000 -> "Desde $1000000"
+            p < 1000 -> "Desde $1000"
             else -> null
         }
         descripcionError = if (descripcion.isBlank()) "Ingresa una descripción" else null
@@ -79,64 +76,58 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
     }
 
     val formatoCLP = remember {
-        NumberFormat.getCurrencyInstance(Locale("es","CL")).apply { maximumFractionDigits = 0 }
+        NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply { maximumFractionDigits = 0 }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFE8EFF7))
-    ) {
-
-        // --------------------------------------
-        // TÍTULO TIPO EL CATÁLOGO
-        // --------------------------------------
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF4AA3DF))
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Panel de Administración",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
+    // ===========================================
+    //            SCAFFOLD CON TOPBAR
+    // ===========================================
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            "Panel de Administración",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
-                        Spacer(Modifier.width(6.dp))
-                        Text("Usuario Administrador", color = Color.White)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text("Usuario Administrador", color = Color.White, fontSize = 13.sp)
+                        }
                     }
-                }
-                
-                // Botón Cerrar Sesión
-                TextButton(onClick = onCerrarSesion) {
-                    Text("Cerrar Sesión", color = Color.White)
-                }
-            }
+                },
+                actions = {
+                    TextButton(onClick = onCerrarSesion) {
+                        Text("Cerrar Sesión", color = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF4AA3DF)
+                )
+            )
         }
+    ) { padding ->
 
         LazyColumn(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
-            // --------------------------------------
-            // FORMULARIO CON DISEÑO ESTILO CATÁLOGO
-            // --------------------------------------
+            // ===========================================
+            //         FORMULARIO CREAR / EDITAR CÓMIC
+            // ===========================================
             item {
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -144,6 +135,7 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     modifier = Modifier.fillMaxWidth()
                 ) {
+
                     Column(modifier = Modifier.padding(16.dp)) {
 
                         Text(
@@ -195,7 +187,6 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                         )
                         Spacer(Modifier.height(10.dp))
 
-                        // Imagen - Solo lectura, muestra "comic" por defecto para nuevos
                         OutlinedTextField(
                             value = if (editandoComic == null) "comic (imagen por defecto)" else imagenSeleccionada,
                             onValueChange = {},
@@ -210,32 +201,24 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                                 disabledLabelColor = Color.Gray
                             )
                         )
-                        
-                        // Mostrar vista previa de la imagen
+
                         if (editandoComic == null) {
                             Spacer(Modifier.height(8.dp))
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                val previewRes = context.resources.getIdentifier(
-                                    "comic", "drawable", context.packageName
-                                )
-                                if (previewRes != 0) {
+                            val previewRes = context.resources.getIdentifier(
+                                "comic", "drawable", context.packageName
+                            )
+                            if (previewRes != 0) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Image(
-                                        painter = painterResource(id = previewRes),
-                                        contentDescription = "Vista previa",
+                                        painter = painterResource(previewRes),
+                                        contentDescription = null,
                                         modifier = Modifier
                                             .size(50.dp)
                                             .clip(RoundedCornerShape(8.dp)),
                                         contentScale = ContentScale.Crop
                                     )
                                     Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        "Vista previa de la imagen",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
+                                    Text("Vista previa de la imagen", color = Color.Gray, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -247,7 +230,6 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                                 if (!validar()) return@Button
 
                                 if (editandoComic == null) {
-                                    // Para nuevos cómics, siempre usa la imagen por defecto "comic"
                                     vm.insertarComic(
                                         ComicEntity(
                                             titulo = titulo.trim(),
@@ -288,9 +270,9 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                 }
             }
 
-            // --------------------------------------
-            // LISTA DE CÓMICS — ESTILO TARJETAS BONITAS
-            // --------------------------------------
+            // ===========================================
+            //              LISTA DE CÓMICS
+            // ===========================================
             items(lista) { comic ->
 
                 val imageRes = context.resources.getIdentifier(
@@ -303,16 +285,11 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                     elevation = cardElevation(6.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(14.dp)
-                            .fillMaxWidth()
-                    ) {
-                        // Fila superior: Imagen + Información del cómic
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+
+                    Column(modifier = Modifier.padding(14.dp)) {
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
                             if (imageRes != 0) {
                                 Image(
                                     painter = painterResource(id = imageRes),
@@ -327,12 +304,7 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                             Spacer(Modifier.width(12.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    comic.titulo,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    maxLines = 2
-                                )
+                                Text(comic.titulo, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Text(
                                     formatoCLP.format(comic.precio),
                                     color = Color(0xFF1E88E5),
@@ -349,11 +321,8 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
 
                         Spacer(Modifier.height(12.dp))
 
-                        // Fila inferior: Botones Editar y Eliminar
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
                             OutlinedButton(
                                 onClick = {
                                     editandoComic = comic
@@ -362,8 +331,8 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                                     descripcion = comic.descripcion
                                     imagenSeleccionada = comic.imagen
                                 },
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp)
                             ) {
                                 Text("Editar")
                             }
@@ -374,8 +343,8 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
                                     containerColor = Color(0xFFD9534F),
                                     contentColor = Color.White
                                 ),
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(14.dp)
                             ) {
                                 Text("Eliminar")
                             }
@@ -388,6 +357,7 @@ fun AdminScreen(vm: CatalogoViewModel, onCerrarSesion: () -> Unit) {
         }
     }
 }
+
 
 
 
