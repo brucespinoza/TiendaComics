@@ -8,22 +8,38 @@ import com.example.tiendacomic.data.local.usuario.ComicEntity
 import com.example.tiendacomic.ui.screen.*
 import com.example.tiendacomic.ui.viewmodel.CatalogoViewModel
 import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
+import com.example.tiendacomic.navigation.Route
 
 @Composable
-fun NavGraph(navController: NavHostController, vm: ModeloAutenticacion, catalogoVm: CatalogoViewModel) {
-    NavHost(navController = navController, startDestination = Route.Login.path) {
+fun NavGraph(
+    navController: NavHostController,
+    vm: ModeloAutenticacion,
+    catalogoVm: CatalogoViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Route.Login.path
+    ) {
 
+        // ---------- LOGIN ----------
         composable(Route.Login.path) {
             LoginScreenVm(
+                navController = navController,   // ← AGREGADO (OBLIGATORIO)
                 vm = vm,
                 onLoginExitoso = {
-                    if (vm.ultimoRol == "admin") navController.navigate(Route.Admin.path)
-                    else navController.navigate(Route.Catalogo.path)
+                    if (vm.ultimoRol == "admin") {
+                        navController.navigate(Route.Admin.path)
+                    } else {
+                        navController.navigate(Route.Catalogo.path)
+                    }
                 },
-                onIrRegistro = { navController.navigate(Route.Registro.path) }
+                onIrRegistro = {
+                    navController.navigate(Route.Registro.path)
+                }
             )
         }
 
+        // ---------- REGISTRO ----------
         composable(Route.Registro.path) {
             RegistroScreenVm(
                 vm = vm,
@@ -32,15 +48,25 @@ fun NavGraph(navController: NavHostController, vm: ModeloAutenticacion, catalogo
             )
         }
 
+        // ---------- CATÁLOGO ----------
         composable(Route.Catalogo.path) {
-            CatalogoScreen(navController = navController, vm = catalogoVm, authVm = vm)
+            CatalogoScreen(
+                navController = navController,
+                vm = catalogoVm,
+                authVm = vm
+            )
         }
 
+        // ---------- PERFIL ----------
         composable(Route.Perfil.path) {
-            PerfilScreen(navController = navController, vm = vm)
+            PerfilScreen(
+                navController = navController,
+                vm = vm
+            )
         }
 
-        composable(Route.Admin.path) { 
+        // ---------- ADMIN ----------
+        composable(Route.Admin.path) {
             AdminScreen(
                 vm = catalogoVm,
                 onCerrarSesion = {
@@ -51,11 +77,31 @@ fun NavGraph(navController: NavHostController, vm: ModeloAutenticacion, catalogo
             )
         }
 
+        // ---------- RECUPERAR CONTRASEÑA ----------
+        composable(Route.RecuperarContraseña.path) {
+            RecuperarContraseñaScreen(navController = navController)
+        }
+
+
+        // ---------- CARRITO ----------
         composable(Route.Carrito.path) {
             val comicsDemo = listOf(
-                ComicEntity(1, "Batman: Año Uno", 20000, "batman", "Los primeros días de Bruce Wayne"),
-                ComicEntity(2, "Narnia", 17000, "narnia", "Un mundo mágico lleno de criaturas fantásticas")
+                ComicEntity(
+                    id = 1,
+                    titulo = "Batman: Año Uno",
+                    precio = 20000,
+                    imagen = "batman",
+                    descripcion = "Los primeros días de Bruce Wayne"
+                ),
+                ComicEntity(
+                    id = 2,
+                    titulo = "Narnia",
+                    precio = 17000,
+                    imagen = "narnia",
+                    descripcion = "Un mundo mágico lleno de criaturas fantásticas"
+                )
             )
+
             CarritoScreen(
                 carrito = comicsDemo,
                 onFinalizarCompra = {},
@@ -63,8 +109,10 @@ fun NavGraph(navController: NavHostController, vm: ModeloAutenticacion, catalogo
             )
         }
 
+        // ---------- MEMBRESÍA ----------
         composable(Route.Membresia.path) {
             MembresiaScreen(authVm = vm)
         }
     }
 }
+

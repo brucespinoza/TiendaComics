@@ -31,10 +31,15 @@ import com.example.tiendacomic.ui.viewmodel.ModeloAutenticacion
 import com.example.tiendacomic.data.storage.UserPreferences
 import com.example.tiendacomic.ui.theme.PrimaryBlue
 import com.example.tiendacomic.ui.theme.SoftBlue
+import androidx.navigation.NavController
+import com.example.tiendacomic.navigation.Route
+
+
 
 // ---------- PANTALLA CONECTADA AL VIEWMODEL ----------
 @Composable
 fun LoginScreenVm(
+    navController: NavController,        // <--- AGREGADO
     onLoginExitoso: () -> Unit,
     onIrRegistro: () -> Unit,
     vm: ModeloAutenticacion
@@ -52,6 +57,7 @@ fun LoginScreenVm(
     }
 
     LoginScreen(
+        navController = navController,     // <--- AGREGADO
         correo = state.correo,
         contrasena = state.contrasena,
         errorCorreo = state.errorCorreo,
@@ -66,9 +72,12 @@ fun LoginScreenVm(
     )
 }
 
+
+
 // ---------- UI PRESENTACIONAL ----------
 @Composable
 private fun LoginScreen(
+    navController: NavController,      // <--- AGREGADO
     correo: String,
     contrasena: String,
     errorCorreo: String?,
@@ -83,7 +92,6 @@ private fun LoginScreen(
 ) {
     var mostrarPass by remember { mutableStateOf(false) }
 
-    // Fondo degradado azul
     val fondoDegradado = Brush.verticalGradient(
         colors = listOf(Color(0xFFE3F2FD), SoftBlue, Color.White)
     )
@@ -112,7 +120,6 @@ private fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // ---------- LOGO / IMAGEN ----------
                 Image(
                     painter = painterResource(id = R.drawable.login),
                     contentDescription = "Logo de tienda de cómics",
@@ -121,7 +128,6 @@ private fun LoginScreen(
                         .padding(bottom = 12.dp)
                 )
 
-                // ---------- TÍTULO ----------
                 Text(
                     "Bienvenidos A La Tienda De Comic",
                     style = MaterialTheme.typography.headlineSmall.copy(
@@ -130,7 +136,9 @@ private fun LoginScreen(
                     ),
                     textAlign = TextAlign.Center
                 )
+
                 Spacer(Modifier.height(8.dp))
+
                 Text(
                     "Inicia sesión para continuar",
                     style = MaterialTheme.typography.bodyMedium,
@@ -139,32 +147,40 @@ private fun LoginScreen(
 
                 Spacer(Modifier.height(24.dp))
 
+
                 // ---------- CORREO ----------
                 OutlinedTextField(
                     value = correo,
                     onValueChange = onCorreoChange,
                     label = { Text("Correo electrónico") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = PrimaryBlue) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Email, contentDescription = null, tint = PrimaryBlue)
+                    },
                     singleLine = true,
                     isError = errorCorreo != null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+
                 if (errorCorreo != null) {
                     Text(errorCorreo, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                 }
 
                 Spacer(Modifier.height(12.dp))
 
+
                 // ---------- CONTRASEÑA ----------
                 OutlinedTextField(
                     value = contrasena,
                     onValueChange = onContrasenaChange,
                     label = { Text("Contraseña") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryBlue) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryBlue)
+                    },
                     singleLine = true,
-                    visualTransformation = if (mostrarPass) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation =
+                        if (mostrarPass) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { mostrarPass = !mostrarPass }) {
                             Icon(
@@ -178,11 +194,13 @@ private fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+
                 if (errorContrasena != null) {
                     Text(errorContrasena, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                 }
 
                 Spacer(Modifier.height(24.dp))
+
 
                 // ---------- BOTÓN ENTRAR ----------
                 Button(
@@ -195,13 +213,23 @@ private fun LoginScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (enviando) {
-                        CircularProgressIndicator(strokeWidth = 2.dp, color = Color.White, modifier = Modifier.size(18.dp))
+                        CircularProgressIndicator(
+                            strokeWidth = 2.dp,
+                            color = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("Validando...")
                     } else {
-                        Text("Entrar", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Entrar",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+
 
                 if (mensajeError != null) {
                     Spacer(Modifier.height(8.dp))
@@ -210,12 +238,19 @@ private fun LoginScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+
                 // ---------- OLVIDÉ CONTRASEÑA ----------
-                TextButton(onClick = { mostrarDialogo = true }) {
+                TextButton(
+                    onClick = {
+                        navController.navigate(Route.RecuperarContraseña.path)
+                    }
+                ) {
                     Text("¿Olvidaste tu contraseña?", color = PrimaryBlue)
                 }
 
+
                 Spacer(Modifier.height(12.dp))
+
 
                 // ---------- CREAR CUENTA ----------
                 OutlinedButton(
@@ -228,47 +263,9 @@ private fun LoginScreen(
                 ) {
                     Text("Crear cuenta", fontWeight = FontWeight.SemiBold)
                 }
-            }
-        }
 
-        // ---------- DIALOGO DE RECUPERACIÓN ----------
-        if (mostrarDialogo) {
-            AlertDialog(
-                onDismissRequest = { mostrarDialogo = false },
-                title = { Text("Recuperar contraseña") },
-                text = {
-                    Column {
-                        Text("Introduce tu correo para recuperar tu contraseña:")
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = correoRecuperacion,
-                            onValueChange = { correoRecuperacion = it },
-                            label = { Text("Correo electrónico") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                        )
-                        if (mensajeEnviado) {
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                "Se envió un enlace de recuperación al correo ingresado.",
-                                color = PrimaryBlue
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        if (correoRecuperacion.isNotBlank()) mensajeEnviado = true
-                    }) {
-                        Text("Enviar")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { mostrarDialogo = false; mensajeEnviado = false }) {
-                        Text("Cerrar")
-                    }
-                }
-            )
+            }
         }
     }
 }
+

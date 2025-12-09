@@ -23,4 +23,6 @@ sealed class Route(val path: String) {
 
     // Nueva pantalla de Membresía
     data object Membresia : Route("membresia")
+
+    data object RecuperarContraseña : Route("RecuperarContraseña")
 }

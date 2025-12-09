@@ -17,7 +17,7 @@ object ApiConfig {
     // ========================================
     // CAMBIAR ESTA IP POR LA DE TU PC
     // ========================================
-    private const val IP_PC = "192.168.1.16"
+    private const val IP_PC = "192.168.1.18"
     // ========================================
 
     // Detectar si es emulador
