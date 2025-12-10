@@ -100,7 +100,6 @@ fun PerfilScreen(
 
     var nombre by rememberSaveable { mutableStateOf(state.nombre) }
     var correo by rememberSaveable { mutableStateOf(state.correo) }
-    var mostrandoDialogoContrasena by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -215,7 +214,7 @@ fun PerfilScreen(
                         Spacer(Modifier.height(12.dp))
 
                         OutlinedButton(
-                            onClick = { mostrandoDialogoContrasena = true },
+                            onClick = { navController.navigate(Route.CambiarContraseña.path) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1565C0))
                         ) { Text("Cambiar contraseña") }
@@ -295,84 +294,6 @@ fun PerfilScreen(
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-
-    // Diálogo de cambio de contraseña
-    if (mostrandoDialogoContrasena) {
-        Dialog(onDismissRequest = { mostrandoDialogoContrasena = false }) {
-            Surface(shape = MaterialTheme.shapes.medium, tonalElevation = 8.dp) {
-                var actual by remember { mutableStateOf("") }
-                var nueva by remember { mutableStateOf("") }
-                var confirmar by remember { mutableStateOf("") }
-                var mostrarActual by remember { mutableStateOf(false) }
-                var mostrarNueva by remember { mutableStateOf(false) }
-                var mostrarConfirmar by remember { mutableStateOf(false) }
-
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Cambiar Contraseña", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = actual,
-                        onValueChange = { actual = it },
-                        label = { Text("Contraseña actual") },
-                        visualTransformation = if (mostrarActual) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { mostrarActual = !mostrarActual }) {
-                                Icon(if (mostrarActual) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
-                            }
-                        }
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = nueva,
-                        onValueChange = { nueva = it },
-                        label = { Text("Nueva contraseña") },
-                        visualTransformation = if (mostrarNueva) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { mostrarNueva = !mostrarNueva }) {
-                                Icon(if (mostrarNueva) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
-                            }
-                        }
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = confirmar,
-                        onValueChange = { confirmar = it },
-                        label = { Text("Confirmar nueva") },
-                        visualTransformation = if (mostrarConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { mostrarConfirmar = !mostrarConfirmar }) {
-                                Icon(if (mostrarConfirmar) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null)
-                            }
-                        }
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            val resultado = vm.cambiarContrasena(actual, nueva, confirmar)
-                            Toast.makeText(context, resultado, Toast.LENGTH_LONG).show()
-                            if (resultado.startsWith("✅")) mostrandoDialogoContrasena = false
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Actualizar") }
-
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = { mostrandoDialogoContrasena = false },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1565C0)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Cancelar") }
                 }
             }
         }

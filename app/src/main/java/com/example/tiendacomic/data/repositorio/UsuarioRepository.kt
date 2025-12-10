@@ -70,14 +70,14 @@ class UsuarioRepository {
     }
 
     // ------------------ CAMBIAR CONTRASEÑA ------------------
-    suspend fun actualizarContrasena(correo: String, nueva: String): Result<Unit> {
+    suspend fun actualizarContrasena(correo: String, actual: String, nueva: String): Result<Unit> {
         return try {
             // Primero obtenemos el usuario por correo para tener su ID
             val userResponse = api.obtenerPorCorreo(correo)
             if (userResponse.isSuccessful && userResponse.body() != null) {
                 val userId = userResponse.body()!!.id
                 val request = CambiarContrasenaRequest(
-                    contrasenaActual = contrasenaActual,
+                    contrasenaActual = actual,
                     nuevaContrasena = nueva
                 )
                 val response = api.cambiarContrasena(userId, request)
@@ -85,7 +85,7 @@ class UsuarioRepository {
                     contrasenaActual = nueva // Actualizamos la contraseña local
                     Result.success(Unit)
                 } else {
-                    Result.failure(IllegalArgumentException("Error al cambiar contraseña"))
+                    Result.failure(IllegalArgumentException("Contraseña actual incorrecta o error al cambiar contraseña"))
                 }
             } else {
                 Result.failure(IllegalArgumentException("Usuario no encontrado"))

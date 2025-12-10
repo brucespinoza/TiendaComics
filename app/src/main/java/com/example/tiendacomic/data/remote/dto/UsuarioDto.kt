@@ -61,3 +61,11 @@ data class CambiarContrasenaRequest(
     val contrasenaActual: String,
     val nuevaContrasena: String
 )
+
+/**
+ * Request para reset de contraseña (sin contraseña actual)
+ */
+data class ResetPasswordRequest(
+    val correo: String,
+    val nuevaContrasena: String
+)

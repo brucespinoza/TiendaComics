@@ -228,27 +228,40 @@ class ModeloAutenticacion(private val repository: UsuarioRepository) : ViewModel
         }
     }
 
-    fun cambiarContrasena(actual: String, nueva: String, confirmar: String): String {
+    fun cambiarContrasena(actual: String, nueva: String, confirmar: String, onExito: () -> Unit, onError: (String) -> Unit = {}) {
         val usuario = _perfilUiState.value
 
-        if (actual != usuario.contrasena)
-            return "❌ La contraseña actual es incorrecta"
-
-        val errorNueva = validarContraseña(nueva)
-        if (errorNueva != null)
-            return "❌ $errorNueva"
-
-        if (nueva != confirmar)
-            return "❌ Las contraseñas no coinciden"
-
-        viewModelScope.launch {
-            val resultado = repository.actualizarContrasena(usuario.correo, nueva)
-            if (resultado.isSuccess) {
-                _perfilUiState.update { it.copy(contrasena = nueva) }
-            }
+        // Validar contraseña actual (comparación simple por ahora, el backend verifica con BCrypt)
+        // Nota: La verificación real se hace en el backend
+        if (actual.isBlank()) {
+            onError("La contraseña actual es obligatoria")
+            return
         }
 
-        return "✅ Contraseña actualizada correctamente"
+        // Validar nueva contraseña (mismas validaciones que registro y recuperación)
+        val errorNueva = validarContraseña(nueva)
+        if (errorNueva != null) {
+            onError(errorNueva)
+            return
+        }
+
+        // Validar confirmación (mismas validaciones que registro y recuperación)
+        val errorConfirmar = validarConfirmarContraseña(nueva, confirmar)
+        if (errorConfirmar != null) {
+            onError(errorConfirmar)
+            return
+        }
+
+        viewModelScope.launch {
+            val resultado = repository.actualizarContrasena(usuario.correo, actual, nueva)
+            if (resultado.isSuccess) {
+                _perfilUiState.update { it.copy(contrasena = nueva) }
+                onExito()
+            } else {
+                val mensaje = resultado.exceptionOrNull()?.message ?: "Error al cambiar contraseña"
+                onError(mensaje)
+            }
+        }
     }
 
     // ------------------- VIP -------------------

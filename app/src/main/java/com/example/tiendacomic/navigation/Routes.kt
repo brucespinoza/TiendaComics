@@ -25,4 +25,7 @@ sealed class Route(val path: String) {
     data object Membresia : Route("membresia")
 
     data object RecuperarContraseña : Route("RecuperarContraseña")
+
+    // Cambiar contraseña desde perfil
+    data object CambiarContraseña : Route("cambiar-contraseña")
 }

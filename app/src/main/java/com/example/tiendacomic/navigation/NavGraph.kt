@@ -82,6 +82,14 @@ fun NavGraph(
             RecuperarContraseñaScreen(navController = navController)
         }
 
+        // ---------- CAMBIAR CONTRASEÑA ----------
+        composable(Route.CambiarContraseña.path) {
+            CambiarContraseñaScreen(
+                navController = navController,
+                vm = vm
+            )
+        }
+
 
         // ---------- CARRITO ----------
         composable(Route.Carrito.path) {
